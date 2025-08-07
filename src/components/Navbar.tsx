@@ -1,14 +1,29 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { Gauge, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
+import { useUser } from '@/context/UserContext';
 
 export default function Navbar() {
   const router = useRouter();
+  const { user } = useUser();
+
+  // Unified click handler for nav actions
+  const handleClick = (href: string, external = false) => (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      return router.push('/login');
+    }
+    if (external) {
+      // for external links, window.open
+      e.preventDefault();
+      window.open(href, '_blank', 'noopener');
+    }
+    // for internal links, no need to preventDefault—Next.js <Link> will handle
+  };
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -16,87 +31,63 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex justify-between items-center px-[40px] py-[20px] border-b border-[#00000020]">
+    <nav className="flex justify-between items-center px-[40px] py-[20px] border-b bg-white shadow-sm">
       {/* Logo */}
-      <Link href="/dashboard" className="flex items-center">
+      <a
+        href="/dashboard/welcome"
+        onClick={handleClick('/dashboard/welcome')}
+        className="flex items-center"
+      >
         <Image
           src="https://responsegenerators.ca/wp-content/uploads/2025/07/Gensen-Logo-Final-version-lower-case-logo-and-spaces1.webp"
-          alt="Gensen Logo"
-          width={40}
-          height={40}
-          className="cursor-pointer"
+          alt="GENSEN Logo"
+          width={60}
+          height={60}
         />
-        <span className="ml-[40px] text-[24px] font-semibold text-black">
-          GENSEN
-        </span>
-      </Link>
+        <span className="ml-[12px] text-[24px] font-bold text-gray-800">GENSEN</span>
+      </a>
 
-      {/* Nav Items */}
-      <div className="flex items-center space-x-[40px]">
-        <NavItem href="/dashboard" label="Dashboard" Icon={Gauge} />
-        <NavItem onClick={handleLogout} label="Logout" Icon={LogOut} />
+      {/* Nav Links */}
+      <div className="flex items-center gap-[24px] text-[16px] text-gray-700">
+        <a
+          href="/dashboard/welcome"
+          onClick={handleClick('/dashboard/welcome')}
+          className="flex items-center gap-[8px] hover:text-orange-500"
+        >
+          <Gauge size={20} /> Dashboard
+        </a>
+
+        <a
+          href="https://gensen-voice-builder.vercel.app/"
+          onClick={handleClick('https://gensen-voice-builder.vercel.app/', true)}
+          className="flex items-center gap-[8px] hover:text-orange-500"
+        >
+          <Gauge size={20} /> Brand Voice
+        </a>
+
+        <a
+          href="https://gensen-map-builder.vercel.app/"
+          onClick={handleClick('https://gensen-map-builder.vercel.app/', true)}
+          className="flex items-center gap-[8px] hover:text-orange-500"
+        >
+          <Gauge size={20} /> Topical Map
+        </a>
+
+        <a
+          href="/generate/step-1"
+          onClick={handleClick('/generate/step-1')}
+          className="flex items-center gap-[8px] hover:text-orange-500"
+        >
+          <Gauge size={20} /> Content Generator
+        </a>
+
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-[8px] hover:text-orange-500 bg-transparent border-none p-0"
+        >
+          <LogOut size={20} /> Logout
+        </button>
       </div>
     </nav>
-  );
-}
-
-type NavItemProps = {
-  href?: string;
-  onClick?: () => void;
-  label: string;
-  Icon: React.ComponentType<{ size: number }>;
-};
-
-function NavItem({ href, onClick, label, Icon }: NavItemProps) {
-  const content = (
-    <>
-      <Icon size={18} />
-      <span className="nav-hover">{label}</span>
-      <style jsx>{`
-        .nav-hover {
-          position: relative;
-        }
-        .nav-hover::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          bottom: -2px;
-          transform: translateX(-50%) scaleX(0);
-          transform-origin: center;
-          width: 100%;
-          height: 2px;
-          background-color: #f66630;
-          transition: transform 0.3s ease-in-out;
-        }
-        .nav-hover:hover::after {
-          transform: translateX(-50%) scaleX(1);
-        }
-      `}</style>
-    </>
-  );
-
-  const commonClasses =
-    'flex items-center gap-[8px] text-[16px] font-medium text-black transition relative';
-
-  if (href) {
-    return (
-      <Link
-        href={href}
-        className={commonClasses}
-        style={{ color: 'inherit', textDecoration: 'none' }}
-      >
-        {content}
-      </Link>
-    );
-  }
-
-  return (
-    <button
-      onClick={onClick}
-      className={`${commonClasses} bg-transparent border-none p-0 focus:outline-none`}
-      style={{ color: 'inherit', background: 'none' }}
-    >
-      {content}
-    </button>
   );
 }

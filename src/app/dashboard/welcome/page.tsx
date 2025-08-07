@@ -10,7 +10,8 @@ export default function WelcomePage() {
 
   // External apps
   const brandVoiceUrl: string =
-    process.env.NEXT_PUBLIC_BRAND_VOICE_URL || '';
+    process.env.NEXT_PUBLIC_BRAND_VOICE_URL ||
+    'https://gensen-voice-builder.vercel.app/';
   const mapBuilderUrl: string =
     process.env.NEXT_PUBLIC_MAP_BUILDER_URL ||
     'https://gensen-map-builder.vercel.app/';

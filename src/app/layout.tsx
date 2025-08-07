@@ -1,28 +1,24 @@
 // src/app/layout.tsx
 import './globals.css';
-import { ReactNode } from 'react';
-import { Raleway } from 'next/font/google';
+import type { ReactNode } from 'react';
+import Navbar from '@/components/Navbar';
 import { UserProvider } from '@/context/UserContext';
-import NavBar from '@/components/Navbar';
-
-const raleway = Raleway({
-  weight: ['400', '600'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-raleway',
-});
 
 export const metadata = {
-  title: 'Gensen Client Portal',
-  description: 'Client access dashboard for Gensen services',
+  title: 'GENSEN Voice Forge',
+  description: 'MVP wizard for agency brand voice creation',
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   return (
     <html lang="en">
-      <body className={`${raleway.variable} font-sans`}>
+      <body className="flex flex-col min-h-screen">
         <UserProvider>
-          <NavBar />
+          <Navbar />
           {children}
         </UserProvider>
       </body>
