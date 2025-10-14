@@ -1,26 +1,40 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+
+// ───────────────────────────────────────────────
+// Types
+// ───────────────────────────────────────────────
+interface User {
+  email: string;
+}
 
 interface UserContextType {
   user: User | null;
   setUser: (user: User | null) => void;
 }
 
+// ───────────────────────────────────────────────
+// Context setup
+// ───────────────────────────────────────────────
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  // ✅ Always track Firebase auth state on mount
+  // ───────────────────────────────────────────────
+  // Placeholder effect for AWS or custom auth later
+  // ───────────────────────────────────────────────
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-    });
-
-    return () => unsubscribe();
+    // Example logic: load a stored user session
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch {
+        localStorage.removeItem('user');
+      }
+    }
   }, []);
 
   return (
@@ -30,6 +44,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// ───────────────────────────────────────────────
+// Hook
+// ───────────────────────────────────────────────
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) throw new Error('useUser must be used within a UserProvider');

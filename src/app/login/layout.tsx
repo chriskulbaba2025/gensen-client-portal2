@@ -1,5 +1,5 @@
 // src/app/login/layout.tsx
-import '../globals.css';  // fixed path
+import '../globals.css';
 
 export const metadata = {
   title: 'Login – GENSEN Voice Forge',
@@ -7,10 +7,8 @@ export const metadata = {
 
 export default function LoginLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="flex flex-col min-h-screen">
-        {children}
-      </body>
-    </html>
+    <div className="flex flex-col min-h-screen">
+      {children}
+    </div>
   );
 }

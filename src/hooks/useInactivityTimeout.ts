@@ -1,36 +1,35 @@
+// src/hooks/useInactivityTimeout.ts
+'use client';
+
 import { useEffect } from 'react';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { useRouter } from 'next/navigation';
 
 const TIMEOUT_DURATION = 20 * 60 * 1000; // 20 minutes
 
-export function useInactivityTimeout() {
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
+export default function useInactivityTimeout() {
+  const router = useRouter();
 
-    const logout = () => {
-      signOut(auth);
-      window.location.href = '/login?error=timeout';
-    };
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
 
     const resetTimer = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(logout, TIMEOUT_DURATION);
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        localStorage.removeItem('user'); // clear session
+        router.push('/login'); // redirect to login
+      }, TIMEOUT_DURATION);
     };
 
-    const activityEvents = ['mousemove', 'keydown', 'scroll', 'click'];
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    events.forEach((event) => window.addEventListener(event, resetTimer));
 
-    activityEvents.forEach(event =>
-      window.addEventListener(event, resetTimer)
-    );
-
-    resetTimer(); // Initialize the timer on mount
+    resetTimer();
 
     return () => {
-      activityEvents.forEach(event =>
+      clearTimeout(timer);
+      events.forEach((event) =>
         window.removeEventListener(event, resetTimer)
       );
-      clearTimeout(timeout);
     };
-  }, []);
+  }, [router]);
 }

@@ -3,10 +3,10 @@
 
 import { ReactNode } from 'react';
 import ClientWrapper from '@/components/ClientWrapper';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
+import useInactivityTimeout from '@/hooks/useInactivityTimeout'; // ✅ FIXED
 
 export default function GenerateLayout({ children }: { children: ReactNode }) {
-  useInactivityTimeout();
+  useInactivityTimeout(); // ✅ now works
 
   return (
     <ClientWrapper>

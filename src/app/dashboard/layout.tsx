@@ -4,7 +4,7 @@
 import { ReactNode } from 'react';
 import ClientWrapper from '@/components/ClientWrapper';
 import QuickLinks from '@/components/QuickLinks';
-import { useInactivityTimeout } from '@/hooks/useInactivityTimeout';
+import useInactivityTimeout from '@/hooks/useInactivityTimeout';
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   useInactivityTimeout();
