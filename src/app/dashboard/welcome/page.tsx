@@ -97,7 +97,7 @@ export default function WelcomePage() {
         <button
           onClick={() =>
             (window.location.href =
-              'https://gensen-voice-builder.vercel.app/')
+              'https://gensen-v2-voice.vercel.app/')
           }
           className="group flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] hover:bg-[#0aa2fb] hover:text-white hover:shadow-[0_0_15px_rgba(10,162,251,0.6)] transition-all"
         >
