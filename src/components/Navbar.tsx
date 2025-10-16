@@ -35,7 +35,7 @@ export default function Navbar() {
       {/* Nav Items */}
       <div className="flex items-center space-x-[40px]">
         <NavItem
-          href="https://gensen-client-portal2.vercel.app/dashboard"
+          href="https://gensen-client-portal2.vercel.app/dashboard/"
           label="Dashboard"
           Icon={Gauge}
           external
