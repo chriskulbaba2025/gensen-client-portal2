@@ -10,75 +10,76 @@ interface Tile {
   description: string;
 }
 
-const base = 'https://omnipressence.com/wp-content/uploads/2025/09';
+// All icons are stored locally in /public/icons
+const base = '/icons';
 
 const tiles: Tile[] = [
   {
     title: 'Topical Map',
-    imageUrl: `${base}/topical-map-icon.png`,
+    imageUrl: `${base}/topical_maps.webp`,
     href: '/dashboard/topical-map',
     description:
       'Topical maps show Google your expertise and guide visitors deeper into content.',
   },
   {
     title: 'Articles',
-    imageUrl: `${base}/quill.png`,
+    imageUrl: `${base}/articles.webp`,
     href: '/dashboard/articles',
     description:
       'Keyword-rich content builds authority and fuels search visibility.',
   },
   {
     title: 'Emails',
-    imageUrl: `${base}/email-icon.png`,
+    imageUrl: `${base}/email.webp`,
     href: '/dashboard/emails',
     description: 'Nurture leads and customers with conversion-ready sequences.',
   },
   {
     title: 'Facebook',
-    imageUrl: `${base}/facebook-icon.png`,
+    imageUrl: `${base}/facebook.webp`,
     href: '/dashboard/facebook',
     description: 'Social posts optimised for reach and engagement.',
   },
   {
     title: 'GBP',
-    imageUrl: `${base}/map-icon.png`,
+    imageUrl: `${base}/gbp.webp`,
     href: '/dashboard/gbp',
     description: 'Keep your Google Business Profile fresh and ranking.',
   },
   {
     title: 'Instagram',
-    imageUrl: `${base}/instagram-image.png`,
+    imageUrl: `${base}/instagram.webp`,
     href: '/dashboard/instagram',
     description: 'Hook scrollers with on-brand captions and visuals.',
   },
   {
     title: 'LinkedIn',
-    imageUrl: `${base}/LinkedIn-icon.png`,
+    imageUrl: `${base}/linkedin.webp`,
     href: '/dashboard/linkedin',
     description: 'Thought-leadership posts that spark conversation and leads.',
   },
   {
     title: 'Quora',
-    imageUrl: `${base}/quora-icon.png`,
+    imageUrl: `${base}/quora.webp`,
     href: '/dashboard/quora',
     description:
       'Authority-building answers that funnel traffic back to your site.',
   },
   {
     title: 'Twitter / X',
-    imageUrl: `${base}/Twitter-icon.png`,
+    imageUrl: `${base}/twitter.webp`,
     href: '/dashboard/twitter',
     description: 'Fast, punchy threads tailor-made for virality.',
   },
   {
     title: 'Video Scripts',
-    imageUrl: `${base}/video-icon.png`,
+    imageUrl: `${base}/youtube.webp`,
     href: '/dashboard/videoscripts',
     description: 'Ready-to-shoot scripts for YouTube, Reels, and TikTok.',
   },
   {
     title: 'Agents',
-    imageUrl: `${base}/agents-icon.png`,
+    imageUrl: `${base}/agents.webp`,
     href: '/dashboard/agents',
     description: 'Automate workflows with custom AI agents tuned to your process.',
   },

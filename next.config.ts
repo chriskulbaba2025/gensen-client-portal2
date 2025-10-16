@@ -4,18 +4,19 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   images: {
-    unoptimized: true,
+    unoptimized: false, // let Next.js handle external images correctly
     remotePatterns: [
       {
         protocol: "https",
         hostname: "omnipressence.com",
-        pathname: "/wp-content/**",
+        port: "",
+        pathname: "/wp-content/uploads/**", // precise match for your icons
       },
     ],
   },
 
   webpack(config) {
-    // Allow importing SVGs from /src/icons
+    // Allow importing SVGs from /src/icons as React components
     config.module.rules.push({
       test: /\.svg$/i,
       issuer: /\.[jt]sx?$/,
