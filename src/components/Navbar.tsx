@@ -19,10 +19,7 @@ export default function Navbar() {
   return (
     <nav className="flex justify-between items-center px-[40px] py-[20px] border-b border-[#00000020] bg-white z-50">
       {/* Logo */}
-      <a
-        href="/login"
-        className="flex items-center no-underline"
-      >
+      <a href="/login" className="flex items-center no-underline">
         <Image
           src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
           alt="Gensen Logo"
@@ -30,7 +27,9 @@ export default function Navbar() {
           height={80}
           className="rounded-[8px]"
         />
-        <span className="ml-[40px] text-[24px] font-semibold text-black">GENSEN</span>
+        <span className="ml-[40px] text-[24px] font-semibold text-black">
+          GENSEN
+        </span>
       </a>
 
       {/* Nav Items */}
@@ -41,7 +40,12 @@ export default function Navbar() {
           Icon={Gauge}
           external
         />
-        <NavItem href="/" label="Brand Voice" Icon={Gauge} />
+        <NavItem
+          href="https://gensen-v2-voice.vercel.app/"
+          label="Brand Voice"
+          Icon={Gauge}
+          external
+        />
         <NavItem
           href="https://gensen-map-builder.vercel.app/"
           label="Topical Map"
@@ -111,11 +115,17 @@ function NavItem({ href = '#', label, Icon, external = false }: NavItemProps) {
 
   if (external) {
     return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={base}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={base}
+      >
         {content}
       </a>
     );
   }
+
   return (
     <Link href={href} className={base}>
       {content}
