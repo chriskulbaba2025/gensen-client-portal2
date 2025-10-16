@@ -1,4 +1,5 @@
-﻿'use client';
+﻿// src/app/generate/step-2/page.tsx
+'use client';
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
@@ -7,7 +8,6 @@ import Image from 'next/image';
 
 export default function GenerateStep2() {
   const router = useRouter();
-<<<<<<< HEAD
   const { internalLinks, setInternalLinks, audience } = useGeneratorStore();
 
   return (
@@ -33,40 +33,6 @@ export default function GenerateStep2() {
         </h1>
         <p className="text-[18px] text-[#333]">
           Add your internal links to boost SEO and context.
-=======
-
-  // âœ… Pull all necessary state from the store
-  const { internalLinks, setInternalLinks, audience } = useGeneratorStore();
-
-  return (
-    <div className="min-h-screen px-[40px] py-[60px] text-black dark:text-white text-center">
-      <h1 className="text-[24px] font-semibold mb-[10px]">
-        Content Generation â€“ Step 2 of 2
-      </h1>
-      <p className="text-[18px] mb-[30px]">Internal Links</p>
-
-      {/* Gensen Logo */}
-      <div className="flex justify-center mb-[30px]">
-        <Image
-          src="https://omnipressence.com/wp-content/uploads/2025/07/Gensen-Logo-Final-version-lower-case-logo-and-spaces1.webp"
-          alt="Gensen Logo"
-          width={250}
-          height={100}
-          className="h-auto"
-        />
-      </div>
-
-      {/* Instructions */}
-      <div className="max-w-[700px] mx-auto space-y-[20px] text-[16px]">
-        <p>
-          Add up to 5 internal links that will be inserted into your article with contextual anchor links (they are descriptive and make sense to the reader, instead of just inserting a link).
-        </p>
-        <p>
-          Remember, this is where the support to your article happens, with internal links pointing back to areas you want the reader and search engines to visit that relate to your article.
-        </p>
-        <p>
-          These are the â€œspokesâ€ for your hub and spoke model.
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
         </p>
       </div>
 
@@ -101,16 +67,11 @@ export default function GenerateStep2() {
                 setInternalLinks(newLinks);
               }}
             />
-<<<<<<< HEAD
-=======
-            <span className="text-[#f66630]">ðŸ”—</span>
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
           </div>
         ))}
       </div>
 
       {/* Audience Preview */}
-<<<<<<< HEAD
       <div className="mt-[40px] text-left max-w-[750px] bg-white rounded-[20px] shadow-md p-[25px] border border-[#e0e6f5]">
         <p className="font-semibold text-[22px] text-[#002c71] mb-[10px]">
           Generated Audience
@@ -118,11 +79,6 @@ export default function GenerateStep2() {
         <div className="italic text-[#333] bg-[#f9fbff] border border-[#e0e6f5] rounded-[12px] p-[16px]">
           {audience || 'Your audience profile will appear here after Step 1.'}
         </div>
-=======
-      <div className="mt-[20px] text-left max-w-[600px] mx-auto">
-        <p className="font-bold underline mb-[6px]">Generated Audience</p>
-        <div className="italic text-gray-500">{audience || 'â€œ{audience appears here}â€'}</div>
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
       </div>
 
       {/* Navigation */}
@@ -143,4 +99,3 @@ export default function GenerateStep2() {
     </div>
   );
 }
-

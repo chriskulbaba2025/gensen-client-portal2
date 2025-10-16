@@ -7,19 +7,9 @@ import Image from 'next/image';
 
 export default function SummarizeSubmit() {
   const router = useRouter();
-  const {
-    keywords,
-    audience,
-    length,
-    internalLinks,
-    intent,
-    setIntent,
-    setLength,
-  } = useGeneratorStore();
+  const { keywords, audience, length, internalLinks, intent, setIntent, setLength } =
+    useGeneratorStore();
 
-  // ───────────────────────────────────────────────
-  // Submit handler
-  // ───────────────────────────────────────────────
   const handleSubmit = async () => {
     const payload = {
       keywords,
@@ -38,25 +28,20 @@ export default function SummarizeSubmit() {
           body: JSON.stringify(payload),
         }
       );
-
       if (!response.ok) throw new Error('n8n webhook returned an error');
       alert('Submitted to GENSEN successfully!');
     } catch (err: unknown) {
-      const errorMessage =
+      const message =
         err instanceof Error ? err.message : 'An unknown error occurred';
-      console.error('[GENSEN SUBMIT ERROR]', errorMessage);
+      console.error('[GENSEN SUBMIT ERROR]', message);
       alert('Submission failed. Please try again.');
     }
   };
 
-  // ───────────────────────────────────────────────
-  // UI
-  // ───────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-[#f5f8ff] text-[#0a0a0a] px-[40px] py-[60px] font-raleway flex flex-col items-center">
       {/* Logo */}
       <div className="flex justify-center mb-[30px]">
-<<<<<<< HEAD
         <div className="bg-white p-[10px] rounded-[15px] shadow-md">
           <Image
             src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
@@ -67,15 +52,6 @@ export default function SummarizeSubmit() {
             priority
           />
         </div>
-=======
-        <Image
-          src="https://omnipressence.com/wp-content/uploads/2025/07/Gensen-Logo-Final-version-lower-case-logo-and-spaces1.webp"
-          alt="Gensen Logo"
-          width={250}
-          height={100}
-          className="h-auto"
-        />
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
       </div>
 
       {/* Heading */}
@@ -88,24 +64,11 @@ export default function SummarizeSubmit() {
         </p>
       </div>
 
-      {/* Summary Card */}
+      {/* Summary */}
       <div className="text-left w-full max-w-[750px] bg-white rounded-[20px] shadow-md p-[45px] border border-[#e0e6f5] text-[18px] leading-[28px]">
         <div>
-<<<<<<< HEAD
           <strong className="text-[#076aff]">Keyword:</strong>
           <p className="mt-[6px]">{keywords || '—'}</p>
-=======
-          <strong className="text-[#f66630]">Keywords:</strong><br />
-          {keywords || 'â€”'}
-        </div>
-        <div>
-          <strong className="text-[#f66630]">Audience:</strong><br />
-          {audience || 'â€”'}
-        </div>
-        <div>
-          <strong className="text-[#f66630]">Length:</strong><br />
-          {length === 'standard' ? '2000â€“2500 words' : length === 'pillar' ? '2300â€“3000 words' : 'â€”'}
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
         </div>
 
         <div className="mt-[20px]">
@@ -119,8 +82,10 @@ export default function SummarizeSubmit() {
             Choose Article Length
           </p>
           <p className="text-[18px] text-[#333] mb-[20px]">
-            Length influences the depth of research and detail. Select based on your campaign goals.
+            Length influences the depth of research and detail. Select based on
+            your campaign goals.
           </p>
+
           <div className="flex justify-center gap-[12px]">
             <button
               className={clsx(
@@ -133,7 +98,6 @@ export default function SummarizeSubmit() {
             >
               Normal (2200–2500 words)
             </button>
-
             <button
               className={clsx(
                 'px-[20px] py-[10px] rounded-[10px] border border-[#076aff] transition-transform duration-200 hover:scale-105',
@@ -148,30 +112,24 @@ export default function SummarizeSubmit() {
           </div>
         </div>
 
-        {/* Intent Section with Explanation */}
+        {/* Intent Section */}
         <div className="mt-[60px] text-center">
           <p className="text-[22px] font-semibold mb-[20px] text-[#002c71]">
             What kind of content should this be?
           </p>
 
-<<<<<<< HEAD
           <p className="mb-[15px]">
-            Content serves different goals. Some articles build trust and visibility,
-            while others drive action such as purchases, bookings, or signups.
+            Content serves different goals. Some articles build trust and
+            visibility, while others drive action such as purchases, bookings,
+            or signups.
           </p>
 
           <p className="mb-[20px]">
-            🔍 <strong>SEO</strong> (Search Engine Optimization) helps people find your content on Google. <br />
-            🤖 <strong>GEO</strong> (Generative Engine Optimization) ensures your content appears in AI-powered answers like ChatGPT or Google’s AI Overview.
-=======
-          <p className="mb-[20px]">
-            Content can serve different goals â€” some articles are meant to <strong>build trust and visibility</strong>, others are designed to <strong>drive real action</strong> like sales, bookings, or signups.
-          </p>
-
-          <p className="mb-[20px]">
-            ðŸ” <strong>SEO</strong> (Search Engine Optimization) helps people find your content on Google. <br />
-            ðŸ¤– <strong>GEO</strong> (Generative Engine Optimization) ensures your content shows up in AI-powered answers, like ChatGPT or Googleâ€™s AI Overview.
->>>>>>> 79875a4 (Update Navbar and tiles to link to brand voice)
+            🔍 <strong>SEO</strong> (Search Engine Optimization) helps people
+            find your content on Google. <br />
+            🤖 <strong>GEO</strong> (Generative Engine Optimization) ensures your
+            content appears in AI-powered answers like ChatGPT or Google’s AI
+            Overview.
           </p>
 
           <div className="flex flex-col md:flex-row justify-center gap-[40px] mt-[20px] text-left">
@@ -233,7 +191,7 @@ export default function SummarizeSubmit() {
         <div className="mt-[60px]">
           <strong className="text-[#076aff]">Internal Links:</strong>
           <ul className="list-disc ml-[20px] mt-[10px]">
-            {internalLinks.filter((link) => link.trim() !== '').length === 0 ? (
+            {internalLinks.filter((l) => l.trim() !== '').length === 0 ? (
               <li className="italic text-gray-400">No links provided</li>
             ) : (
               internalLinks.map((link, i) => <li key={i}>{link}</li>)
@@ -261,4 +219,3 @@ export default function SummarizeSubmit() {
     </div>
   );
 }
-
