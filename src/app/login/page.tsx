@@ -10,7 +10,7 @@ const ENV = {
 
 // Automatically detect environment
 const getRedirectUri = () => {
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+  if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:3000/api/auth/callback';
   }
   return 'https://gensen.omnipressence.com/api/auth/callback';
@@ -24,7 +24,6 @@ export default function LoginPage() {
 
   return (
     <div className="w-screen min-h-screen flex flex-col items-center pt-[100px] bg-[#f7f9fc] dark:bg-[#000000]">
-      {/* Logo */}
       <div className="flex justify-center mb-[30px] w-full">
         <div className="relative w-[220px] h-[180px]">
           <Image
@@ -36,12 +35,10 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Heading */}
       <h1 className="text-[24px] font-bold mb-[20px] text-center text-[#000000] dark:text-[#ffffff] font-raleway">
         Login to Gensen
       </h1>
 
-      {/* Cognito Login Button */}
       <a
         href={loginUrl}
         className="w-[350px] py-[12px] rounded-[10px] border border-[#076aff] bg-[#076aff] text-[#ffffff] text-center hover:bg-[#005ae0] transition font-medium"
@@ -49,7 +46,6 @@ export default function LoginPage() {
         Sign in with Cognito
       </a>
 
-      {/* Forgot Password */}
       <a
         href={`${ENV.NEXT_PUBLIC_COGNITO_DOMAIN}/forgotPassword?client_id=${ENV.NEXT_PUBLIC_COGNITO_CLIENT_ID}&redirect_uri=${encodeURIComponent(
           redirectUri
