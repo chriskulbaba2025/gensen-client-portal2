@@ -2,17 +2,25 @@
 
 import React from 'react';
 import Image from 'next/image';
+
 const ENV = {
   NEXT_PUBLIC_COGNITO_DOMAIN: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
   NEXT_PUBLIC_COGNITO_CLIENT_ID: process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!,
 };
 
+// Automatically detect environment
+const getRedirectUri = () => {
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    return 'http://localhost:3000/api/auth/callback';
+  }
+  return 'https://gensen.omnipressence.com/api/auth/callback';
+};
 
 export default function LoginPage() {
-  const redirectUri = 'https://gensen.omnipressence.com/api/auth/callback';
+  const redirectUri = getRedirectUri();
   const loginUrl = `${ENV.NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/authorize?response_type=code&client_id=${ENV.NEXT_PUBLIC_COGNITO_CLIENT_ID}&redirect_uri=${encodeURIComponent(
     redirectUri
-  )}&scope=openid+email+profile`;
+  )}&scope=openid+email+phone+profile`;
 
   return (
     <div className="w-screen min-h-screen flex flex-col items-center pt-[100px] bg-[#f7f9fc] dark:bg-[#000000]">
