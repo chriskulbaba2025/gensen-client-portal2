@@ -14,20 +14,18 @@ const COGNITO_CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
 const REDIRECT_URI =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3000/api/auth/callback"
-    : "https://gensen.omnipressence.com/api/auth/callback";
+    : "https://portal.omnipressence.com/api/auth/callback";
 
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
     if (!code)
-      return NextResponse.redirect("https://gensen.omnipressence.com/login");
+      return NextResponse.redirect("https://portal.omnipressence.com/login");
 
     // Retrieve PKCE verifier from cookie
     const cookiesHeader = req.headers.get("cookie") || "";
-    const verifierMatch = cookiesHeader.match(
-      /pkce_verifier=([^;]+)/
-    );
+    const verifierMatch = cookiesHeader.match(/pkce_verifier=([^;]+)/);
     const codeVerifier = verifierMatch ? verifierMatch[1] : "";
 
     // Exchange the authorization code for tokens
@@ -46,7 +44,7 @@ export async function GET(req: Request) {
     if (!tokenRes.ok) {
       console.error("Cognito token exchange failed", await tokenRes.text());
       return NextResponse.redirect(
-        "https://gensen.omnipressence.com/login?error=token_exchange_failed"
+        "https://portal.omnipressence.com/login?error=token_exchange_failed"
       );
     }
 
@@ -62,7 +60,7 @@ export async function GET(req: Request) {
 
     // Set session cookie and redirect
     const res = NextResponse.redirect(
-      "https://gensen.omnipressence.com/dashboard/welcome"
+      "https://portal.omnipressence.com/dashboard/welcome"
     );
     res.cookies.set("gensen_session", tokens.id_token, {
       httpOnly: true,
@@ -78,7 +76,7 @@ export async function GET(req: Request) {
   } catch (err) {
     console.error("OAuth callback error:", err);
     return NextResponse.redirect(
-      "https://gensen.omnipressence.com/login?error=callback_failed"
+      "https://portal.omnipressence.com/login?error=callback_failed"
     );
   }
 }

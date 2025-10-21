@@ -9,11 +9,15 @@ import React from 'react';
 export default function Navbar() {
   const router = useRouter();
 
-  const handleLogout = () => {
-    // Clear user session
-    localStorage.removeItem('user');
-    // Redirect to login
-    router.push('/login');
+  // ✅ Full logout flow (clears cookie + redirects)
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'GET' });
+    } catch (e) {
+      console.error('Logout error', e);
+    } finally {
+      router.push('https://portal.omnipressence.com/login');
+    }
   };
 
   return (
@@ -35,25 +39,25 @@ export default function Navbar() {
       {/* Nav Items */}
       <div className="flex items-center space-x-[40px]">
         <NavItem
-          href="https://gensen-client-portal2.vercel.app/dashboard/"
+          href="https://portal.omnipressence.com/dashboard/"
           label="Dashboard"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://gensen-v2-voice.vercel.app/"
+          href="https://voice.omnipressence.com/"
           label="Brand Voice"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://gensen-map-builder.vercel.app/"
+          href="https://map.omnipressence.com/"
           label="Topical Map"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://gensen-client-portal2.vercel.app/generate/step-1"
+          href="https://portal.omnipressence.com/generate/step-1"
           label="Content Generator"
           Icon={Gauge}
           external

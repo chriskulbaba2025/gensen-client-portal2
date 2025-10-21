@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyIdToken } from './lib/verifyCognitoJwt';
 
-const LOGIN_URL = 'https://gensen.omnipressence.com/login';
+const LOGIN_URL = 'https://portal.omnipressence.com/login';
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get('gensen_session')?.value;
