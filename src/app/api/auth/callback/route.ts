@@ -2,9 +2,11 @@ import { NextResponse } from "next/server";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 
 /**
- * Production callback endpoint for Cognito → Next.js.
- * Exchanges authorization code for tokens, verifies ID token,
- * and sets secure session cookie before redirecting user.
+ * Cognito → Next.js callback handler with PKCE
+ * 1. Exchanges authorization code for tokens (includes code_verifier)
+ * 2. Verifies ID token signature
+ * 3. Stores ID token in secure cookie
+ * 4. Redirects user to dashboard
  */
 
 const COGNITO_DOMAIN = process.env.NEXT_PUBLIC_COGNITO_DOMAIN!;
@@ -18,10 +20,15 @@ export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
     const code = url.searchParams.get("code");
-
-    if (!code) {
+    if (!code)
       return NextResponse.redirect("https://gensen.omnipressence.com/login");
-    }
+
+    // Retrieve PKCE verifier from cookie
+    const cookiesHeader = req.headers.get("cookie") || "";
+    const verifierMatch = cookiesHeader.match(
+      /pkce_verifier=([^;]+)/
+    );
+    const codeVerifier = verifierMatch ? verifierMatch[1] : "";
 
     // Exchange the authorization code for tokens
     const tokenRes = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
@@ -32,6 +39,7 @@ export async function GET(req: Request) {
         client_id: COGNITO_CLIENT_ID,
         code,
         redirect_uri: REDIRECT_URI,
+        code_verifier: codeVerifier,
       }),
     });
 
@@ -44,7 +52,7 @@ export async function GET(req: Request) {
 
     const tokens = await tokenRes.json();
 
-    // Verify ID token with Cognito JWKs
+    // Verify ID token
     const jwks = createRemoteJWKSet(
       new URL(`${COGNITO_DOMAIN}/.well-known/jwks.json`)
     );
@@ -52,7 +60,7 @@ export async function GET(req: Request) {
       audience: COGNITO_CLIENT_ID,
     });
 
-    // Set secure session cookie
+    // Set session cookie and redirect
     const res = NextResponse.redirect(
       "https://gensen.omnipressence.com/dashboard/welcome"
     );
@@ -62,7 +70,7 @@ export async function GET(req: Request) {
       sameSite: "lax",
       path: "/",
       domain: ".omnipressence.com",
-      maxAge: 3600,
+      maxAge: 3600, // 1 hour
     });
 
     console.log("Cognito user verified:", payload.email || payload.sub);
