@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 const ENV = {
   NEXT_PUBLIC_COGNITO_DOMAIN: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
@@ -9,9 +10,19 @@ const ENV = {
 };
 
 export default function LoginPage() {
+  const router = useRouter();
   const [redirectUri, setRedirectUri] = useState('');
 
-  // ✅ Run only on client to avoid hydration mismatch
+  // ✅ Redirect if already logged in
+  useEffect(() => {
+    const cookies = document.cookie.split(';').map((c) => c.trim());
+    const hasSession = cookies.some((c) => c.startsWith('gensen_session='));
+    if (hasSession) {
+      router.push('/dashboard/welcome');
+    }
+  }, [router]);
+
+  // ✅ Set redirect URI (client side only)
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setRedirectUri('http://localhost:3000/api/auth/callback');
@@ -21,7 +32,6 @@ export default function LoginPage() {
   }, []);
 
   if (!redirectUri) {
-    // Prevents SSR/CSR mismatch during hydration
     return (
       <div className="w-screen h-screen flex items-center justify-center text-gray-500">
         Loading login...
