@@ -4,7 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 /**
  * Cognito → Next.js callback handler with PKCE
  * 1. Exchanges authorization code for tokens (includes code_verifier)
- * 2. Verifies ID token signature
+ * 2. Verifies ID token signature using Cognito JWKS
  * 3. Stores ID token in secure cookie
  * 4. Redirects user to dashboard
  */
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const verifierMatch = cookiesHeader.match(/pkce_verifier=([^;]+)/);
     const codeVerifier = verifierMatch ? verifierMatch[1] : "";
 
-    // Exchange the authorization code for tokens
+    // Exchange authorization code for tokens
     const tokenRes = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -50,9 +50,11 @@ export async function GET(req: Request) {
 
     const tokens = await tokenRes.json();
 
-    // Verify ID token
+    // Verify ID token signature against Cognito IdP JWKS
     const jwks = createRemoteJWKSet(
-      new URL(`${COGNITO_DOMAIN}/.well-known/jwks.json`)
+      new URL(
+        "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_h3GTXtQg3/.well-known/jwks.json"
+      )
     );
     const { payload } = await jwtVerify(tokens.id_token, jwks, {
       audience: COGNITO_CLIENT_ID,
@@ -68,7 +70,7 @@ export async function GET(req: Request) {
       sameSite: "lax",
       path: "/",
       domain: ".omnipressence.com",
-      maxAge: 3600, // 1 hour
+      maxAge: 3600,
     });
 
     console.log("Cognito user verified:", payload.email || payload.sub);
