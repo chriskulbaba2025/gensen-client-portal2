@@ -8,35 +8,32 @@ export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const token = req.cookies.get('gensen_session')?.value;
 
-  // ───────────────────────────────────────────────
-  // No session cookie → redirect to login
-  // ───────────────────────────────────────────────
-  if (!token) {
+  // Skip middleware for static assets or Next internals
+  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon')) {
+    return NextResponse.next();
+  }
+
+  // Unauthenticated access to protected routes
+  if (
+    !token &&
+    (pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/generate') ||
+      pathname.startsWith('/voice') ||
+      pathname.startsWith('/map'))
+  ) {
     const loginUrl = new URL(LOGIN_URL);
     loginUrl.searchParams.set('next', pathname + search);
     return NextResponse.redirect(loginUrl);
   }
 
-  // ───────────────────────────────────────────────
-  // Validate JWT signature (basic check)
-  // ───────────────────────────────────────────────
-  const valid = await verifyIdToken(token).catch(() => false);
-  if (!valid) {
-    const loginUrl = new URL(LOGIN_URL);
-    loginUrl.searchParams.set('next', pathname + search);
-    return NextResponse.redirect(loginUrl);
+  // If authenticated user hits /login → go to dashboard instead
+  if (token && pathname.startsWith('/login')) {
+    const valid = await verifyIdToken(token).catch(() => false);
+    if (valid) {
+      return NextResponse.redirect(new URL(DASHBOARD_URL));
+    }
   }
 
-  // ───────────────────────────────────────────────
-  // If user already authenticated and on /login → skip back to dashboard
-  // ───────────────────────────────────────────────
-  if (pathname.startsWith('/login')) {
-    return NextResponse.redirect(new URL(DASHBOARD_URL));
-  }
-
-  // ───────────────────────────────────────────────
-  // Allow access to requested page
-  // ───────────────────────────────────────────────
   return NextResponse.next();
 }
 
