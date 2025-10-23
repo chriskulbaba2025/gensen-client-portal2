@@ -67,7 +67,7 @@ export async function GET(req: Request) {
     res.cookies.set("gensen_session", tokens.id_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "none",
       path: "/",
       domain: ".omnipressence.com",
       maxAge: 3600,
