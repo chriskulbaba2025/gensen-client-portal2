@@ -68,11 +68,8 @@ export default function LoginPage() {
         Sign into your Gensen portal
       </a>
 
-      {/* Forgot Password */}
-<a
-  href={forgotPasswordUrl}
-  className="mt-[20px] inline-block w-[350px] py-[10px] rounded-[10px] border border-[#076aff] text-[#076aff] hover:bg-[#076aff] hover:text-[#ffffff] text-center transition"
->
-  Forgot password? Enter email and click Next
-</a>
+{/* Forgot Password */}
+<p className="mt-[20px] w-[350px] py-[10px] rounded-[10px] border border-[#076aff] text-[#076aff] text-center">
+  Forgot password? Enter your email and click Next
+</p>
 </div> ); }
