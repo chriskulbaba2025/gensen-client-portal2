@@ -9,8 +9,9 @@ export async function verifyIdToken(token: string) {
   const { payload } = await jwtVerify(token, jwks, {
     issuer,
     audience,
-    // tolerate small clock drift
-    clockTolerance: 60,
+    clockTolerance: 60, // small drift
   });
-  return Boolean(payload.sub);
+
+  // return full decoded payload
+  return payload;
 }
