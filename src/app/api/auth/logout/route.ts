@@ -6,11 +6,12 @@ const COGNITO_CLIENT_ID = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
 const LOGOUT_REDIRECT = 'https://portal.omnipressence.com/login';
 
 export async function GET() {
+  // Construct AWS Cognito logout URL
   const logoutUrl = `${COGNITO_DOMAIN}/logout?client_id=${COGNITO_CLIENT_ID}&logout_uri=${encodeURIComponent(LOGOUT_REDIRECT)}`;
 
   const res = NextResponse.redirect(logoutUrl);
 
-  // clear cookie across all subdomains
+  // Clear local cookie across all subdomains
   res.cookies.set('gensen_session', '', {
     domain: '.omnipressence.com',
     path: '/',
@@ -20,7 +21,7 @@ export async function GET() {
     sameSite: 'lax',
   });
 
-  // stop cached “back” navigation
+  // Prevent browser caching of protected pages
   res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.headers.set('Pragma', 'no-cache');
   res.headers.set('Expires', '0');
