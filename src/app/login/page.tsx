@@ -69,12 +69,10 @@ export default function LoginPage() {
       </a>
 
       {/* Forgot Password */}
-      <a
-        href={forgotPasswordUrl}
-        className="mt-[20px] inline-block w-[350px] py-[10px] rounded-[10px] border border-[#076aff] text-[#076aff] hover:bg-[#076aff] hover:text-[#ffffff] text-center transition"
-      >
-        Forgot your password?
-      </a>
-    </div>
-  );
-}
+<a
+  href={forgotPasswordUrl}
+  className="mt-[20px] inline-block w-[350px] py-[10px] rounded-[10px] border border-[#076aff] text-[#076aff] hover:bg-[#076aff] hover:text-[#ffffff] text-center transition"
+>
+  Forgot password? Enter email and click Next
+</a>
+</div> ); }
