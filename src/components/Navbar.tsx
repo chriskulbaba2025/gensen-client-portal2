@@ -1,3 +1,4 @@
+// src/components/Navbar.tsx
 'use client';
 
 import Link from 'next/link';
@@ -9,7 +10,6 @@ import React from 'react';
 export default function Navbar() {
   const router = useRouter();
 
-  // ✅ Full logout flow (clears cookie + redirects)
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'GET' });
@@ -23,7 +23,7 @@ export default function Navbar() {
   return (
     <nav className="flex justify-between items-center px-[40px] py-[20px] border-b border-[#00000020] bg-white z-50">
       {/* Logo */}
-      <a href="/login" className="flex items-center no-underline">
+      <a href="/dashboard/welcome" className="flex items-center no-underline">
         <Image
           src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
           alt="Gensen Logo"
@@ -39,19 +39,19 @@ export default function Navbar() {
       {/* Nav Items */}
       <div className="flex items-center space-x-[40px]">
         <NavItem
-          href="https://portal.omnipressence.com/dashboard/"
+          href="https://portal.omnipressence.com/dashboard/welcome"
           label="Dashboard"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://voice.omnipressence.com/"
+          href="https://voice.omnipressence.com/dashboard/welcome"
           label="Brand Voice"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://map.omnipressence.com/"
+          href="https://map.omnipressence.com/dashboard/welcome"
           label="Topical Map"
           Icon={Gauge}
           external
@@ -107,9 +107,6 @@ function NavItem({ href = '#', label, Icon, external = false }: NavItemProps) {
         a:hover .nav-hover::after {
           transform: translateX(-50%) scaleX(1);
         }
-        button:hover .nav-hover::after {
-          transform: translateX(-50%) scaleX(1);
-        }
       `}</style>
     </>
   );
@@ -117,18 +114,12 @@ function NavItem({ href = '#', label, Icon, external = false }: NavItemProps) {
   const base =
     'flex items-center gap-[8px] text-[16px] font-medium text-black hover:text-[#0aa2fb] no-underline';
 
-  if (external) {
+  if (external)
     return (
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={base}
-      >
+      <a href={href} target="_blank" rel="noopener noreferrer" className={base}>
         {content}
       </a>
     );
-  }
 
   return (
     <Link href={href} className={base}>
@@ -154,35 +145,6 @@ function NavItemButton({
     >
       <Icon size={18} />
       <span className="nav-hover">{label}</span>
-      <style jsx>{`
-        .nav-hover {
-          position: relative;
-        }
-        .nav-hover::after {
-          content: '';
-          position: absolute;
-          left: 50%;
-          bottom: -2px;
-          transform: translateX(-50%) scaleX(0);
-          transform-origin: center;
-          width: 100%;
-          height: 2px;
-          background: linear-gradient(
-            90deg,
-            rgba(10, 162, 251, 0) 0%,
-            rgba(10, 162, 251, 0.8) 50%,
-            rgba(10, 162, 251, 0) 100%
-          );
-          box-shadow: 0 0 6px rgba(10, 162, 251, 0.7);
-          transition: transform 0.25s ease-in-out;
-        }
-        button:hover .nav-hover::after {
-          transform: translateX(-50%) scaleX(1);
-        }
-        button:focus {
-          outline: none;
-        }
-      `}</style>
     </button>
   );
 }

@@ -1,36 +1,45 @@
+// src/middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyIdToken } from './lib/verifyCognitoJwt';
 
-const LOGIN_URL = 'https://portal.omnipressence.com/login';
-const DASHBOARD_URL = 'https://portal.omnipressence.com/dashboard/welcome';
+const LOGIN = '/login';
+const DASH = '/dashboard/welcome';
 
 export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const token = req.cookies.get('gensen_session')?.value;
 
-  // Skip middleware for static assets or Next internals
-  if (pathname.startsWith('/_next') || pathname.startsWith('/favicon')) {
-    return NextResponse.next();
-  }
-
-  // Unauthenticated access to protected routes
+  // ignore assets and API
   if (
-    !token &&
-    (pathname.startsWith('/dashboard') ||
-      pathname.startsWith('/generate') ||
-      pathname.startsWith('/voice') ||
-      pathname.startsWith('/map'))
-  ) {
-    const loginUrl = new URL(LOGIN_URL);
-    loginUrl.searchParams.set('next', pathname + search);
-    return NextResponse.redirect(loginUrl);
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/api')
+  ) return NextResponse.next();
+
+  // if hitting /login and already authenticated → go to dashboard
+  if (pathname.startsWith(LOGIN) && token) {
+    const ok = await verifyIdToken(token).catch(() => false);
+    if (ok) return NextResponse.redirect(new URL(DASH, req.url));
   }
 
-  // If authenticated user hits /login → go to dashboard instead
-  if (token && pathname.startsWith('/login')) {
-    const valid = await verifyIdToken(token).catch(() => false);
-    if (valid) {
-      return NextResponse.redirect(new URL(DASHBOARD_URL));
+  // protect app routes
+  const needsAuth =
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/generate') ||
+    pathname.startsWith('/voice') ||
+    pathname.startsWith('/map');
+
+  if (needsAuth) {
+    if (!token) {
+      const url = new URL(LOGIN, req.url);
+      url.searchParams.set('next', pathname + search);
+      return NextResponse.redirect(url);
+    }
+    const ok = await verifyIdToken(token).catch(() => false);
+    if (!ok) {
+      const url = new URL(LOGIN, req.url);
+      url.searchParams.set('next', pathname + search);
+      return NextResponse.redirect(url);
     }
   }
 
@@ -38,11 +47,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/login',
-    '/dashboard/:path*',
-    '/generate/:path*',
-    '/voice/:path*',
-    '/map/:path*',
-  ],
+  matcher: ['/login', '/dashboard/:path*', '/generate/:path*', '/voice/:path*', '/map/:path*'],
 };

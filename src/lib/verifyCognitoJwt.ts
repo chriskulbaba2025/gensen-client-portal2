@@ -1,17 +1,16 @@
-import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
-import { ENV } from '@/lib/env';
+// src/lib/verifyCognitoJwt.ts
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 
-const jwks = createRemoteJWKSet(
-  new URL(`${ENV.COGNITO_DOMAIN}/.well-known/jwks.json`)
-);
+const issuer = 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_h3GTXtQg3';
+const audience = process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID!;
+const jwks = createRemoteJWKSet(new URL(`${issuer}/.well-known/jwks.json`));
 
-export async function verifyIdToken(token: string): Promise<JWTPayload | null> {
-  try {
-    const { payload } = await jwtVerify(token, jwks, {
-      audience: ENV.COGNITO_CLIENT_ID,
-    });
-    return payload;
-  } catch {
-    return null;
-  }
+export async function verifyIdToken(token: string) {
+  const { payload } = await jwtVerify(token, jwks, {
+    issuer,
+    audience,
+    // tolerate small clock drift
+    clockTolerance: 60,
+  });
+  return Boolean(payload.sub);
 }

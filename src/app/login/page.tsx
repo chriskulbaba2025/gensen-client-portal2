@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
 
 const ENV = {
   NEXT_PUBLIC_COGNITO_DOMAIN: process.env.NEXT_PUBLIC_COGNITO_DOMAIN!,
@@ -10,19 +9,9 @@ const ENV = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const [redirectUri, setRedirectUri] = useState('');
 
-  // ✅ Redirect if already logged in
-  useEffect(() => {
-    const cookies = document.cookie.split(';').map((c) => c.trim());
-    const hasSession = cookies.some((c) => c.startsWith('gensen_session='));
-    if (hasSession) {
-      router.push('/dashboard/welcome');
-    }
-  }, [router]);
-
-  // ✅ Set redirect URI (client side only)
+  // ✅ Compute redirect URI once on client
   useEffect(() => {
     if (window.location.hostname === 'localhost') {
       setRedirectUri('http://localhost:3000/api/auth/callback');
@@ -42,9 +31,11 @@ export default function LoginPage() {
   // 🔐 Cognito Hosted UI login link
   const loginUrl = `${ENV.NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/authorize?response_type=code&client_id=${
     ENV.NEXT_PUBLIC_COGNITO_CLIENT_ID
-  }&redirect_uri=${encodeURIComponent(redirectUri)}&scope=openid+email+profile&state=gensen_login`;
+  }&redirect_uri=${encodeURIComponent(
+    redirectUri
+  )}&scope=openid+email+profile&state=gensen_login`;
 
-  // 🔑 Hosted UI Forgot Password
+  // 🔑 Hosted UI Forgot Password link
   const forgotPasswordUrl = `${ENV.NEXT_PUBLIC_COGNITO_DOMAIN}/forgotPassword?client_id=${
     ENV.NEXT_PUBLIC_COGNITO_CLIENT_ID
   }&redirect_uri=${encodeURIComponent(redirectUri)}`;
