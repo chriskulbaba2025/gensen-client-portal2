@@ -10,15 +10,10 @@ import React from 'react';
 export default function Navbar() {
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'GET' });
-    } catch (e) {
-      console.error('Logout error', e);
-    } finally {
-      router.push('https://portal.omnipressence.com/login');
-    }
+  const handleLogout = () => {
+    window.location.href = '/api/auth/logout';
   };
+  
 
   return (
     <nav className="flex justify-between items-center px-[40px] py-[20px] border-b border-[#00000020] bg-white z-50">
