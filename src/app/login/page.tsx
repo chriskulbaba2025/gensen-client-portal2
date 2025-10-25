@@ -65,7 +65,7 @@ export default function LoginPage() {
         href={loginUrl}
         className="w-[350px] py-[12px] rounded-[10px] border border-[#076aff] bg-[#076aff] text-[#ffffff] text-center hover:bg-[#005ae0] transition font-medium"
       >
-        Sign in with Cognito
+        Sign into your Gensen portal
       </a>
 
       {/* Forgot Password */}
