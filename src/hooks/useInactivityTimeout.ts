@@ -2,21 +2,18 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
-const TIMEOUT_DURATION = 20 * 60 * 1000; // 20 minutes
+const TIMEOUT_DURATION = 30 * 60 * 1000; // 30 minutes
 
 export default function useInactivityTimeout() {
-  const router = useRouter();
-
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
     const resetTimer = () => {
       clearTimeout(timer);
       timer = setTimeout(() => {
-        localStorage.removeItem('user'); // clear session
-        router.push('/login'); // redirect to login
+        // full logout through API route
+        window.location.href = '/api/auth/logout';
       }, TIMEOUT_DURATION);
     };
 
@@ -31,5 +28,5 @@ export default function useInactivityTimeout() {
         window.removeEventListener(event, resetTimer)
       );
     };
-  }, [router]);
+  }, []);
 }
