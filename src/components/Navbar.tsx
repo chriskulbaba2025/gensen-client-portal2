@@ -1,19 +1,15 @@
-// src/components/Navbar.tsx
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { Gauge, LogOut } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import React from 'react';
 
 export default function Navbar() {
-  const router = useRouter();
+
 
   const handleLogout = () => {
     window.location.href = '/api/auth/logout';
   };
-  
 
   return (
     <nav className="flex justify-between items-center px-[40px] py-[20px] border-b border-[#00000020] bg-white z-50">
@@ -37,25 +33,21 @@ export default function Navbar() {
           href="https://portal.omnipressence.com/dashboard"
           label="Dashboard"
           Icon={Gauge}
-          external
         />
         <NavItem
           href="https://voice.omnipressence.com"
           label="Brand Voice"
           Icon={Gauge}
-          external
         />
         <NavItem
           href="https://map.omnipressence.com"
           label="Topical Map"
           Icon={Gauge}
-          external
         />
         <NavItem
           href="https://portal.omnipressence.com/generate/step-1"
           label="Content Generator"
           Icon={Gauge}
-          external
         />
         <NavItemButton onClick={handleLogout} label="Logout" Icon={LogOut} />
       </div>
@@ -66,13 +58,12 @@ export default function Navbar() {
 type IconType = React.ComponentType<{ size?: number; className?: string }>;
 
 type NavItemProps = {
-  href?: string;
+  href: string;
   label: string;
   Icon: IconType;
-  external?: boolean;
 };
 
-function NavItem({ href = '#', label, Icon, external = false }: NavItemProps) {
+function NavItem({ href, label, Icon }: NavItemProps) {
   const content = (
     <>
       <Icon size={18} />
@@ -109,17 +100,11 @@ function NavItem({ href = '#', label, Icon, external = false }: NavItemProps) {
   const base =
     'flex items-center gap-[8px] text-[16px] font-medium text-black hover:text-[#0aa2fb] no-underline';
 
-  if (external)
-    return (
-      <a href={href} target="_blank" rel="noopener noreferrer" className={base}>
-        {content}
-      </a>
-    );
-
+  // Always open in same tab
   return (
-    <Link href={href} className={base}>
+    <a href={href} target="_self" rel="noopener noreferrer" className={base}>
       {content}
-    </Link>
+    </a>
   );
 }
 

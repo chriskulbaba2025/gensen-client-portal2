@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import BrandVoiceTile from '@/components/BrandVoiceTile'; // new component import
+import BrandVoiceTile from '@/components/BrandVoiceTile';
+
 
 export default function WelcomePage() {
   const [name, setName] = useState<string>('');
@@ -54,7 +55,7 @@ export default function WelcomePage() {
       </h1>
 
       <h2 className="text-[24px] font-semibold mb-[30px] text-center text-[#0aa2fb]">
-        Ship One Thing Today
+        Just Ship One Thing
       </h2>
 
       <div className="mb-[40px] w-full max-w-[700px]">
