@@ -34,19 +34,19 @@ export default function Navbar() {
       {/* Nav Items */}
       <div className="flex items-center space-x-[40px]">
         <NavItem
-          href="https://portal.omnipressence.com/dashboard/welcome"
+          href="https://portal.omnipressence.com/dashboard"
           label="Dashboard"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://voice.omnipressence.com/dashboard/welcome"
+          href="https://voice.omnipressence.com"
           label="Brand Voice"
           Icon={Gauge}
           external
         />
         <NavItem
-          href="https://map.omnipressence.com/dashboard/welcome"
+          href="https://map.omnipressence.com"
           label="Topical Map"
           Icon={Gauge}
           external

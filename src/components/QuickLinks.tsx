@@ -16,19 +16,19 @@ const items = [
   },
   {
     id: 'emails',
-    label: 'Email Updates',
+    label: 'Email',
     href: '/dashboard/emails',
     src: 'https://omnipressence.com/wp-content/uploads/2025/10/clear_Email.png',
   },
   {
     id: 'linkedin',
-    label: 'LinkedIn Updates',
+    label: 'LinkedIn',
     href: '/dashboard/linkedin',
     src: 'https://omnipressence.com/wp-content/uploads/2025/10/clear_linkedin.png',
   },
   {
     id: 'facebook',
-    label: 'Facebook Updates',
+    label: 'Facebook',
     href: '/dashboard/facebook',
     src: 'https://omnipressence.com/wp-content/uploads/2025/10/clear_fb.png',
   },
