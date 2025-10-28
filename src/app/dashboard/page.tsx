@@ -12,18 +12,22 @@ interface Tile {
 
 const tiles: Tile[] = [
   {
+    title: 'Brand Voice',
+    imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/brand-voice-opp-map-icon.png',
+    href: '/dashboard/brand-voice',
+    description: 'Define your unique tone, language, and positioning for consistent messaging.',
+  },
+  {
     title: 'Topical Map',
     imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/topical_maps.webp',
     href: '/dashboard/topical-map',
-    description:
-      'Topical maps show Google your expertise and guide visitors deeper into content.',
+    description: 'Topical maps show Google your expertise and guide visitors deeper into content.',
   },
   {
     title: 'Articles',
     imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/articles.webp',
     href: '/dashboard/articles',
-    description:
-      'Keyword-rich content builds authority and fuels search visibility.',
+    description: 'Keyword-rich content builds authority and fuels search visibility.',
   },
   {
     title: 'Emails',
@@ -74,12 +78,6 @@ const tiles: Tile[] = [
     description: 'Ready-to-shoot scripts for YouTube, Reels, and TikTok.',
   },
   {
-    title: 'Guest Posts',
-    imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/guest_post.webp',
-    href: '/dashboard/guest-posts',
-    description: 'Expand reach and backlinks with high-authority guest content.',
-  },
-  {
     title: 'Agents',
     imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/agents.webp',
     href: '/dashboard/agents',
@@ -112,15 +110,12 @@ export default function DashboardPage() {
         GENSEN Operations Dashboard
       </h1>
 
-      <div
-        className="grid grid-cols-4 gap-x-[30px] gap-y-[30px] justify-items-center"
-      >
-      {tiles.map((tile) => (
-  <div key={tile.title} className="w-[260px]">
-    <DashboardTile {...tile} />
-  </div>
-))}
-
+      <div className="grid grid-cols-4 gap-x-[30px] gap-y-[30px] justify-items-center">
+        {tiles.map((tile) => (
+          <div key={tile.title} className="w-[260px]">
+            <DashboardTile {...tile} />
+          </div>
+        ))}
       </div>
     </main>
   );
