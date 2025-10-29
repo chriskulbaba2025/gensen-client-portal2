@@ -22,7 +22,7 @@ export async function middleware(req: NextRequest) {
     if (ok) return NextResponse.redirect(new URL(DASH, req.url));
   }
 
-  // protect app routes
+  // protect only these app routes (not /report)
   const needsAuth =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/generate') ||
@@ -46,6 +46,13 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// do NOT include /report here
 export const config = {
-  matcher: ['/login', '/dashboard/:path*', '/generate/:path*', '/voice/:path*', '/map/:path*'],
+  matcher: [
+    '/login',
+    '/dashboard/:path*',
+    '/generate/:path*',
+    '/voice/:path*',
+    '/map/:path*',
+  ],
 };
