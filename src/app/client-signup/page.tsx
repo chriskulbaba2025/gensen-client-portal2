@@ -40,26 +40,25 @@ export default function ClientSignupPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#f7f9fc] text-[#0b1320] px-[20px]">
       {/* Logo */}
-      <div className="mb-[24px]">
+      <div className="mt-[100px] mb-[24px]">
         <Image
           src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
           alt="GENSEN Logo"
           width={220}
           height={70}
-          className="mx-auto"
+          className="mx-auto rounded-[15px]"
         />
       </div>
 
-      {/* Card */}
+      {/* Signup Card */}
       <div className="bg-white rounded-[16px] shadow-md border border-[#e0e6f5] w-full max-w-[420px] p-[36px] text-center">
         <h1 className="text-[26px] font-semibold text-[#10284a] mb-[14px]">
           Create Your GENSEN Client Account
         </h1>
         <p className="text-[15px] text-[#0b1320] mb-[28px] leading-relaxed">
-          Welcome to GENSEN. This page allows you to create your client profile and
-          access your personalized brand systems. Enter your email below and our
-          platform will generate your secure Cognito account. You will receive an
-          email with a link to set your password and activate your dashboard access.
+          This page lets you register for access to GENSEN’s client platform. Enter
+          your email below and we’ll create your secure Cognito profile. You’ll
+          receive an email with a link to set your password and complete activation.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-[16px]">
@@ -97,7 +96,7 @@ export default function ClientSignupPage() {
       </div>
 
       {/* Footer */}
-      <p className="text-[13px] text-[#666] mt-[24px]">
+      <p className="text-[13px] text-[#666] mt-[24px] mb-[40px]">
         Secure signup powered by AWS Cognito · © 2025 GENSEN
       </p>
     </div>

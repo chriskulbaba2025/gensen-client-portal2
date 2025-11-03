@@ -1,8 +1,7 @@
 import './globals.css';
 import type { ReactNode } from 'react';
 import { Raleway } from 'next/font/google';
-import { UserProvider } from '@/context/UserContext';
-import NavbarWrapper from '@/components/NavbarWrapper';
+import { ConditionalLayout } from '@/components/ConditionalLayout';
 
 export const metadata = {
   title: 'GENSEN Voice Forge',
@@ -12,7 +11,6 @@ export const metadata = {
   },
 };
 
-// ✅ Import Raleway and set it as a CSS variable
 const raleway = Raleway({
   subsets: ['latin'],
   variable: '--font-raleway',
@@ -25,10 +23,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${raleway.variable} font-[Raleway] flex flex-col min-h-screen bg-[#f7f9fc] text-[#0a0a0a]`}
       >
-        <UserProvider>
-          <NavbarWrapper />
-          {children}
-        </UserProvider>
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   );
