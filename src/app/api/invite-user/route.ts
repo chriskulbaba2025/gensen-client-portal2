@@ -34,11 +34,14 @@ export async function POST(req: Request) {
       message: 'Invitation sent successfully.',
       result,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating user:', error);
+    const errMsg =
+      error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { ok: false, error: error.message || 'Unknown error' },
+      { ok: false, error: errMsg },
       { status: 500 }
     );
   }
+
 }
