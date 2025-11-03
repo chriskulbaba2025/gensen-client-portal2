@@ -38,83 +38,68 @@ export default function BrandVoicePage() {
 
         <div className="max-w-[750px] bg-white shadow-soft rounded-[15px] px-[32px] py-[40px] border border-[#e0e6f5] leading-relaxed text-[17px] text-[#0b1320]">
           <h1 className="text-[32px] font-semibold text-[#002c71] mb-[20px] text-center">
-            Your Brand Voice Is in Progress
+            Your Brand Voice Is the Core of Everything You Communicate
           </h1>
 
           <section className="space-y-[14px] text-left">
             <div>
-              <h2 className="text-[18px] font-semibold text-[#10284a] mb-[6px]">
-                Who you are
-              </h2>
               <p>
-                Every brand already speaks. The rhythm and vocabulary you use have
-                been telling your story since the first post and the first client
-                email. GENSEN is not inventing a voice. It is revealing the one that
-                has always been there. It listens between the lines, translates
-                personality into pattern, and prepares a language system that feels
-                natural like conversation yet distinct like your logo.
+                Every brand is speaking right now, but only a few sound intentional.
+                The words you choose, the rhythm of your sentences, and the tone you
+                use define how people experience your business. Without a clear
+                voice, messages drift from post to post and lose meaning. With a
+                defined voice, every line aligns and every message builds recognition
+                and trust.
               </p>
             </div>
 
             <div>
-              <h2 className="text-[18px] font-semibold text-[#10284a] mb-[6px]">
-                What is happening
-              </h2>
               <p>
-                GENSEN is analyzing your written world right now. It studies
-                statements and captions, replies and reviews, long form and short
-                form. It measures warmth that invites, authority that convinces,
-                energy that sustains. Sentence by sentence it maps how your brand
-                breathes. From words and phrases to rhythm and structure, it is
-                forming a unified voice architecture that scales from ad copy to case
-                study, from headline to help desk.
-              </p>
-              <ul className="list-disc pl-[20px] mt-[10px]">
-                <li>Clarity and character</li>
-                <li>Precision and personality</li>
-                <li>Consistency and flexibility</li>
-              </ul>
-            </div>
-
-            <div>
-              <h2 className="text-[18px] font-semibold text-[#10284a] mb-[6px]">
-                Where it is going
-              </h2>
-              <p>
-                Your report will appear here complete and interactive. You will see
-                tone anchors, phrasing guides, and applied examples. You will trace
-                how identity carries across channels and topics. It is a mirror and a
-                roadmap in one place.
+                GENSEN helps you capture, clarify, and codify that voice. It studies
+                how you communicate, how your audience responds, and what makes your
+                message distinct. Then it builds a framework that ensures every
+                caption, email, and campaign speaks in the same confident, authentic
+                tone. Your Brand Voice becomes a shared language for your entire
+                team.
               </p>
             </div>
 
             <div>
-              <h2 className="text-[18px] font-semibold text-[#10284a] mb-[6px]">
-                When to expect it
-              </h2>
               <p>
-                Most reports finalize in a few minutes. When ready this space updates
-                automatically with your Brand Voice Report. A link also appears in
-                your dashboard for quick return.
+                Defining your voice is not a task — it is the beginning of alignment
+                and consistency that scales. Once you start your Brand Voice
+                creation, GENSEN will generate a detailed report right here. The
+                report includes tone anchors, phrasing guides, and real-world
+                examples that turn your natural communication style into an
+                actionable system.
+              </p>
+              <p>
+                Imagine your team writing in harmony, your audience recognizing your
+                tone instantly, and your brand sounding unified everywhere it speaks.
+                That is what a defined voice creates — clarity, cohesion, and
+                connection that lasts.
               </p>
             </div>
 
             <div>
-              <h2 className="text-[18px] font-semibold text-[#10284a] mb-[6px]">
-                Why it matters
-              </h2>
-              <p>
-                A defined voice separates signal from noise and turns scrolls into
-                stops. It helps teams write faster with fewer edits. It builds
-                recognition and trust that compounds. Speak to many or to one. Plan
-                for today or for tomorrow. Your sound stays unmistakably yours.
+              <p className="text-[#002c71] font-medium text-center mt-[20px]">
+                A brand without a voice is noise. A brand with a voice is remembered.
+              </p>
+              <p className="text-[#0b1320] text-center mt-[10px]">
+                Build your Brand Voice today and define how your story should sound
+                before someone else defines it for you.
               </p>
             </div>
-
-            <p className="text-[#002c71] font-medium text-center mt-[10px]">
-              Your next conversation with your audience begins here.
-            </p>
           </section>
+
+          <div className="flex justify-center mt-[30px]">
+            <a
+              href="https://voice.omnipressence.com"
+              className="bg-[#076aff] hover:bg-[#002c71] text-white font-medium px-[28px] py-[12px] rounded-[8px] transition-all"
+            >
+              Build Your Brand Voice Now
+            </a>
+          </div>
         </div>
       </div>
     );
