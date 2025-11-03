@@ -42,7 +42,7 @@ export default function ClientSignupPage() {
       {/* Logo */}
       <div className="mb-[24px]">
         <Image
-          src="https://omnipressence.com/wp-content/uploads/2025/07/Gensen-Logo-Final-version-lower-case-logo-and-spaces1.webp"
+          src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
           alt="GENSEN Logo"
           width={220}
           height={70}
