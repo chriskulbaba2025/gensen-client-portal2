@@ -22,9 +22,6 @@ export default function BrandVoicePage() {
     fetchVoice();
   }, []);
 
-  // ───────────────────────────────────────────────
-  // Loading spinner
-  // ───────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[80vh]">
@@ -34,7 +31,7 @@ export default function BrandVoicePage() {
   }
 
   // ───────────────────────────────────────────────
-  // Placeholder copy until report exists
+  // Placeholder copy until n8n pushes a URL
   // ───────────────────────────────────────────────
   if (!reportUrl || typeof reportUrl !== 'string') {
     return (
@@ -113,7 +110,7 @@ export default function BrandVoicePage() {
   }
 
   // ───────────────────────────────────────────────
-  // Render report iframe when ready
+  // Render iframe when n8n has pushed the URL
   // ───────────────────────────────────────────────
   return (
     <iframe
