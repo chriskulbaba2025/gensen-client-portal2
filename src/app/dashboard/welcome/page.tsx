@@ -90,74 +90,58 @@ export default function WelcomePage() {
       </p>
 
       {/* Three Steps */}
-      <div className="grid grid-cols-3 gap-[30px] max-w-[1000px] w-full text-[20px]">
-        {/* Step 1 — Brand Voice */}
-        <button
-          onClick={() =>
-            (window.location.href = 'https://voice.omnipressence.com/')
-          }
-          className="group flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] hover:bg-[#0aa2fb] hover:text-white hover:shadow-[0_0_15px_rgba(10,162,251,0.6)] transition-all"
-        >
-          <Image
-            src="https://omnipressence.com/wp-content/uploads/2025/10/voice_main.png"
-            alt="Brand Voice Icon"
-            width={150}
-            height={150}
-            className="rounded-[15px] mb-[20px] object-contain"
-          />
-          <h3 className="font-semibold mb-[10px] group-hover:text-white text-center">
-            Step 1 – Generate Your Brand Voice
-          </h3>
-          <p className="text-center leading-snug group-hover:text-white">
-            Capture and define your unique brand tone.
-          </p>
-        </button>
+<div className="grid grid-cols-3 gap-[30px] max-w-[1000px] w-full text-[20px]">
+  {/* Step 1 — Brand Voice */}
+  <div className="flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] shadow">
+    <Image
+      src="https://omnipressence.com/wp-content/uploads/2025/10/voice_main.png"
+      alt="Brand Voice Icon"
+      width={150}
+      height={150}
+      className="rounded-[15px] mb-[20px] object-contain"
+    />
+    <h3 className="font-semibold mb-[10px] text-center">
+      Step 1 – Generate Your Brand Voice
+    </h3>
+    <p className="text-center leading-snug">
+      Capture and define your unique brand tone.
+    </p>
+  </div>
 
-        {/* Step 2 — Topical Map */}
-        <button
-          onClick={() =>
-            (window.location.href = 'https://map.omnipressence.com/')
-          }
-          className="group flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] hover:bg-[#0aa2fb] hover:text-white hover:shadow-[0_0_15px_rgba(10,162,251,0.6)] transition-all"
-        >
-          <Image
-            src="https://omnipressence.com/wp-content/uploads/2025/10/map_main.png"
-            alt="Topical Map Icon"
-            width={150}
-            height={150}
-            className="rounded-[15px] mb-[20px] object-contain"
-          />
-          <h3 className="font-semibold mb-[10px] group-hover:text-white text-center">
-            Step 2 – Generate Your Topical Map
-          </h3>
-          <p className="text-center leading-snug group-hover:text-white">
-            Outline key topics and cluster related ideas.
-          </p>
-        </button>
+  {/* Step 2 — Topical Map */}
+  <div className="flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] shadow">
+    <Image
+      src="https://omnipressence.com/wp-content/uploads/2025/10/map_main.png"
+      alt="Topical Map Icon"
+      width={150}
+      height={150}
+      className="rounded-[15px] mb-[20px] object-contain"
+    />
+    <h3 className="font-semibold mb-[10px] text-center">
+      Step 2 – Generate Your Topical Map
+    </h3>
+    <p className="text-center leading-snug">
+      Outline key topics and cluster related ideas.
+    </p>
+  </div>
 
-        {/* Step 3 — Content Generator */}
-        <button
-          onClick={() =>
-            (window.location.href =
-              'https://portal.omnipressence.com/generate/step-1')
-          }
-          className="group flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] hover:bg-[#0aa2fb] hover:text-white hover:shadow-[0_0_15px_rgba(10,162,251,0.6)] transition-all"
-        >
-          <Image
-            src="https://omnipressence.com/wp-content/uploads/2025/10/main_doc.png"
-            alt="Content Generator Icon"
-            width={150}
-            height={150}
-            className="rounded-[15px] mb-[20px] object-contain"
-          />
-          <h3 className="font-semibold mb-[10px] group-hover:text-white text-center">
-            Step 3 – Generate Your Content
-          </h3>
-          <p className="text-center leading-snug group-hover:text-white">
-            Produce ready-to-edit articles, social posts, and emails.
-          </p>
-        </button>
-      </div>
+  {/* Step 3 — Content Generator */}
+  <div className="flex flex-col items-center p-[25px] bg-white border border-[#0aa2fb] rounded-[15px] shadow">
+    <Image
+      src="https://omnipressence.com/wp-content/uploads/2025/10/main_doc.png"
+      alt="Content Generator Icon"
+      width={150}
+      height={150}
+      className="rounded-[15px] mb-[20px] object-contain"
+    />
+    <h3 className="font-semibold mb-[10px] text-center">
+      Step 3 – Generate Your Content
+    </h3>
+    <p className="text-center leading-snug">
+      Produce ready-to-edit articles, social posts, and emails.
+    </p>
+  </div>
+</div>
 
       {/* GENSOLOGY™ Dropdown */}
       <details className="mt-[50px] w-full max-w-[700px] bg-[#F3F4F6] rounded-[12px] p-[20px] text-[18px]">

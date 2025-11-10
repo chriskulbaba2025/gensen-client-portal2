@@ -1,25 +1,45 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { NextRequest, NextResponse } from 'next/server';
 
-// store once in a simple JSON file (for static cache)
-// you can later replace this with Firestore or DynamoDB
-export async function POST(req: Request) {
-  const body = await req.json();
-  const { emailLower, reportUrl } = body;
-  if (!emailLower || !reportUrl) {
-    return NextResponse.json({ ok: false, error: 'Missing data' }, { status: 400 });
+const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID!;
+const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN!;
+const TABLE_NAME = 'Responses';
+
+export async function POST(req: NextRequest) {
+  try {
+    const auth = req.headers.get('authorization');
+    if (auth !== `Bearer ${process.env.N8N_SECRET_KEY}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { email, reportUrl } = await req.json();
+    if (!email || !reportUrl)
+      return NextResponse.json({ error: 'Missing params' }, { status: 400 });
+
+    // find record by Clean Email
+    const findUrl = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula={Clean Email}="${email}"`;
+    const findRes = await fetch(findUrl, {
+      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+    });
+    const findData = await findRes.json();
+    const recordId = findData.records?.[0]?.id;
+    if (!recordId)
+      return NextResponse.json({ error: 'Record not found' }, { status: 404 });
+
+    // update Cognito Report URL
+    await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}/${recordId}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fields: { 'Cognito Report URL': reportUrl },
+      }),
+    });
+
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error('Upsert error', e);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
-
-  const filePath = path.join(process.cwd(), 'static-reports.json');
-  let data: Record<string, string> = {};
-  if (fs.existsSync(filePath)) {
-    data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  }
-
-  // write once
-  data[emailLower] = reportUrl;
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-
-  return NextResponse.json({ ok: true });
 }
