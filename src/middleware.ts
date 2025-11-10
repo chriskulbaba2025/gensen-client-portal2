@@ -8,7 +8,9 @@ export async function middleware(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
   const token = req.cookies.get('gensen_session')?.value;
 
-  // ignore assets, API routes, and the standalone client signup page
+  // ───────────────────────────────────────────────
+  // Allow static assets, APIs, and signup page
+  // ───────────────────────────────────────────────
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon') ||
@@ -18,13 +20,17 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // redirect authenticated users away from /login
+  // ───────────────────────────────────────────────
+  // Redirect authenticated users away from /login
+  // ───────────────────────────────────────────────
   if (pathname.startsWith(LOGIN) && token) {
     const ok = await verifyIdToken(token).catch(() => false);
     if (ok) return NextResponse.redirect(new URL(DASH, req.url));
   }
 
-  // protect only these app routes
+  // ───────────────────────────────────────────────
+  // Protect dashboard and internal routes
+  // ───────────────────────────────────────────────
   const needsAuth =
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/generate') ||
@@ -37,6 +43,7 @@ export async function middleware(req: NextRequest) {
       url.searchParams.set('next', pathname + search);
       return NextResponse.redirect(url);
     }
+
     const ok = await verifyIdToken(token).catch(() => false);
     if (!ok) {
       const url = new URL(LOGIN, req.url);
@@ -55,6 +62,6 @@ export const config = {
     '/generate/:path*',
     '/voice/:path*',
     '/map/:path*',
-    '/client-signup', // explicitly include so it's recognized, but skipped in logic above
+    '/client-signup',
   ],
 };

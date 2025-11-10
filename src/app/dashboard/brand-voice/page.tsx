@@ -1,4 +1,4 @@
-`'use client';
+'use client';
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -11,7 +11,8 @@ export default function BrandVoicePage() {
       try {
         const res = await fetch('/api/brand-voice');
         const data = await res.json();
-        setReportUrl(data?.reportUrl || null);
+        console.log('Brand voice API response:', data);
+        setReportUrl(typeof data?.reportUrl === 'string' ? data.reportUrl : null);
       } catch (e) {
         console.error('Error fetching brand voice', e);
       } finally {
@@ -21,6 +22,9 @@ export default function BrandVoicePage() {
     fetchVoice();
   }, []);
 
+  // ───────────────────────────────────────────────
+  // Loading spinner
+  // ───────────────────────────────────────────────
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[80vh]">
@@ -29,7 +33,10 @@ export default function BrandVoicePage() {
     );
   }
 
-  if (!reportUrl) {
+  // ───────────────────────────────────────────────
+  // Placeholder copy until report exists
+  // ───────────────────────────────────────────────
+  if (!reportUrl || typeof reportUrl !== 'string') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center px-[20px] bg-[#f5f8ff]">
         <h1 className="text-[28px] text-[#10284a] mb-[12px] font-semibold">
@@ -105,12 +112,14 @@ export default function BrandVoicePage() {
     );
   }
 
+  // ───────────────────────────────────────────────
+  // Render report iframe when ready
+  // ───────────────────────────────────────────────
   return (
     <iframe
-      src={reportUrl}
+      src={String(reportUrl)}
       className="w-full h-[100vh] border-0"
       title="Brand Voice Report"
     />
   );
 }
-`
