@@ -10,11 +10,17 @@ export default function BrandVoicePage() {
     async function fetchVoice() {
       try {
         const res = await fetch('/api/brand-voice');
+        if (!res.ok) throw new Error('Bad response');
         const data = await res.json();
         console.log('Brand voice API response:', data);
-        setReportUrl(typeof data?.reportUrl === 'string' ? data.reportUrl : null);
+        setReportUrl(
+          typeof data?.reportUrl === 'string' && data.reportUrl.trim() !== ''
+            ? data.reportUrl
+            : null
+        );
       } catch (e) {
         console.error('Error fetching brand voice', e);
+        setReportUrl(null);
       } finally {
         setLoading(false);
       }
@@ -31,9 +37,9 @@ export default function BrandVoicePage() {
   }
 
   // ───────────────────────────────────────────────
-  // Placeholder copy until n8n pushes a URL
+  // Placeholder if no report exists
   // ───────────────────────────────────────────────
-  if (!reportUrl || typeof reportUrl !== 'string') {
+  if (!reportUrl) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center px-[20px] bg-[#f5f8ff]">
         <h1 className="text-[28px] text-[#10284a] mb-[12px] font-semibold">
@@ -71,11 +77,10 @@ export default function BrandVoicePage() {
             <div>
               <p>
                 Defining your voice is not a task — it is the beginning of alignment
-                and consistency that scales. Once you start your Brand Voice
-                creation, GENSEN will generate a detailed report right here. The
-                report includes tone anchors, phrasing guides, and real-world
-                examples that turn your natural communication style into an
-                actionable system.
+                and consistency that scales. Once you start your Brand Voice creation,
+                GENSEN will generate a detailed report right here. The report includes
+                tone anchors, phrasing guides, and real-world examples that turn your
+                natural communication style into an actionable system.
               </p>
               <p>
                 Imagine your team writing in harmony, your audience recognizing your
@@ -110,11 +115,11 @@ export default function BrandVoicePage() {
   }
 
   // ───────────────────────────────────────────────
-  // Render iframe when n8n has pushed the URL
+  // Render iframe if n8n report URL exists
   // ───────────────────────────────────────────────
   return (
     <iframe
-      src={String(reportUrl)}
+      src={reportUrl}
       className="w-full h-[100vh] border-0"
       title="Brand Voice Report"
     />
