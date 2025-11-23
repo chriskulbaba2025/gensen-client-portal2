@@ -8,6 +8,11 @@ const client = new CognitoIdentityProviderClient({
   region: process.env.COGNITO_REGION,
 });
 
+// Airtable
+const AIRTABLE_BASE = process.env.AIRTABLE_BASE_ID!;
+const AIRTABLE_TABLE = process.env.AIRTABLE_TABLE_ID!;
+const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!;
+
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
@@ -16,22 +21,70 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    const command = new AdminCreateUserCommand({
+    // 1. CREATE USER IN COGNITO (NO EMAIL SENT)
+    const createCommand = new AdminCreateUserCommand({
       UserPoolId: process.env.COGNITO_USER_POOL_ID!,
       Username: email,
-      MessageAction: "SUPPRESS",            // ← prevents ALL emails
+      MessageAction: "SUPPRESS",       // ← prevents all automatic emails
       UserAttributes: [
         { Name: 'email', Value: email },
-        { Name: 'email_verified', Value: 'true' },   // ← allows login later without verification step
+        { Name: 'email_verified', Value: 'true' },  // allow later login flow
       ],
     });
 
-    const result = await client.send(command);
+    const result = await client.send(createCommand);
 
+    // Extract Cognito sub
+    const attributes = result.User?.Attributes || [];
+    const subAttr = attributes.find((a) => a.Name === "sub");
+    const cognitoSub = subAttr?.Value;
+
+    if (!cognitoSub) {
+      return NextResponse.json(
+        { ok: false, error: "Cognito user created but sub not returned." },
+        { status: 500 }
+      );
+    }
+
+    // 2. UPSERT INTO AIRTABLE
+    const airtableRes = await fetch(
+      `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          records: [
+            {
+              fields: {
+                Email: email,
+                cognito_sub: cognitoSub,
+              },
+            },
+          ],
+          typecast: true,
+        }),
+      }
+    );
+
+    const airtableJson = await airtableRes.json();
+
+    if (!airtableRes.ok) {
+      console.error("Airtable error:", airtableJson);
+      return NextResponse.json(
+        { ok: false, error: "Failed to update Airtable." },
+        { status: 500 }
+      );
+    }
+
+    // 3. SEND RESPONSE BACK TO REACT
     return NextResponse.json({
       ok: true,
-      message: `User created silently. No email was sent.`,
-      result,
+      message: "User created silently and saved to Airtable.",
+      sub: cognitoSub,
+      airtable: airtableJson,
     });
   } catch (error) {
     console.error('Error creating user:', error);
