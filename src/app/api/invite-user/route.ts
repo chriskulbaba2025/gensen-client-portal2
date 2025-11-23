@@ -19,18 +19,18 @@ export async function POST(req: Request) {
     const command = new AdminCreateUserCommand({
       UserPoolId: process.env.COGNITO_USER_POOL_ID!,
       Username: email,
+      MessageAction: "SUPPRESS",            // ← prevents ALL emails
       UserAttributes: [
         { Name: 'email', Value: email },
-        { Name: 'email_verified', Value: 'false' },
+        { Name: 'email_verified', Value: 'true' },   // ← allows login later without verification step
       ],
-      DesiredDeliveryMediums: ['EMAIL'], // sends the invitation email
     });
 
     const result = await client.send(command);
 
     return NextResponse.json({
       ok: true,
-      message: `Invitation sent to ${email}.`,
+      message: `User created silently. No email was sent.`,
       result,
     });
   } catch (error) {
@@ -38,7 +38,6 @@ export async function POST(req: Request) {
 
     const errMsg = error instanceof Error ? error.message : 'Unknown error';
 
-    // Common Cognito error: user already exists
     if (errMsg.includes('UsernameExistsException')) {
       return NextResponse.json(
         {
