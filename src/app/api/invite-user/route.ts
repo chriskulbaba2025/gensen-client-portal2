@@ -21,14 +21,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
-    // 1. CREATE USER IN COGNITO (NO EMAIL SENT)
+    // 1. CREATE USER IN COGNITO WITH CUSTOM TEMP PASSWORD (NO EMAIL SENT)
     const createCommand = new AdminCreateUserCommand({
       UserPoolId: process.env.COGNITO_USER_POOL_ID!,
       Username: email,
-      MessageAction: "SUPPRESS",       // ← prevents all automatic emails
+      TemporaryPassword: "TempPass@123!",   // ← FIXED TEMP PASSWORD
+      MessageAction: "SUPPRESS",            // ← disables Cognito emails
       UserAttributes: [
         { Name: 'email', Value: email },
-        { Name: 'email_verified', Value: 'true' },  // allow later login flow
+        { Name: 'email_verified', Value: 'true' },  // allowed to log in
       ],
     });
 
@@ -79,13 +80,14 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. SEND RESPONSE BACK TO REACT
+    // 3. RETURN TO FRONTEND
     return NextResponse.json({
       ok: true,
-      message: "User created silently and saved to Airtable.",
+      message: "User created silently with temporary password and saved to Airtable.",
       sub: cognitoSub,
       airtable: airtableJson,
     });
+
   } catch (error) {
     console.error('Error creating user:', error);
 
