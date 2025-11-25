@@ -1,56 +1,77 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyIdToken } from '@/lib/verifyCognitoJwt';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { cleanMojibake } from '@/lib/cleanMojibake';
 
-const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID!;
-const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN!;
-const TABLE_NAME = 'Responses';
+const s3 = new S3Client({ region: 'us-east-1' });
+const BUCKET = 'gensen-voice-reports';
+
+// Convert S3 stream → string (safe type)
+async function streamToString(
+  stream: AsyncIterable<Uint8Array>
+): Promise<string> {
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of stream) chunks.push(chunk);
+  return Buffer.concat(chunks).toString('utf8');
+}
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. Read Cognito session cookie
+    // 1. Read Cognito cookie
     const token = req.cookies.get('gensen_session')?.value;
     if (!token) {
-      return NextResponse.json(
-        { reportUrl: null },
-        { status: 401, headers: { 'Cache-Control': 'no-store' } }
-      );
+      return NextResponse.json({ html: null }, { status: 401 });
     }
 
-    // 2. Verify and decode JWT to get user email
+    // 2. Decode JWT → email
     const payload = await verifyIdToken(token);
-    const email = payload.email as string;
+    const email = payload.email;
     if (!email) {
-      return NextResponse.json(
-        { reportUrl: null },
-        { status: 400, headers: { 'Cache-Control': 'no-store' } }
-      );
+      return NextResponse.json({ html: null }, { status: 400 });
     }
 
-    // 3. Query Airtable for that user's record
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${TABLE_NAME}?filterByFormula={Clean Email}="${email}"`;
+    // 3. Lookup Airtable record by Clean Email
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={Clean Email}="${email}"`;
     const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
+      headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}` },
       cache: 'no-store',
     });
+
     const data = await res.json();
-
-    // 4. Extract Cognito Report URL (if any)
     const record = data.records?.[0];
-    const reportUrl =
-      typeof record?.fields['Cognito Report URL'] === 'string'
-        ? record.fields['Cognito Report URL']
-        : null;
+    if (!record) {
+      return NextResponse.json({ html: null });
+    }
 
-    // 5. Return URL if found; otherwise null to trigger placeholder
-    return NextResponse.json(
-      { reportUrl },
-      { headers: { 'Cache-Control': 'no-store' } }
+    // 4. Get S3 key
+    const s3Key = record.fields['s3OpportunityKey']; // ensure this matches your field name
+    if (!s3Key) {
+      return NextResponse.json({ html: null });
+    }
+
+    // 5. Fetch object from S3
+    const s3Object = await s3.send(
+      new GetObjectCommand({
+        Bucket: BUCKET,
+        Key: s3Key,
+      })
     );
+
+    // 6. Validate Body exists and convert to string
+    const body = s3Object.Body;
+    if (!body) {
+      return NextResponse.json({ html: null }, { status: 500 });
+    }
+
+    const rawHtml = await streamToString(body as AsyncIterable<Uint8Array>);
+
+    // 7. Clean mojibake
+    const cleanedHtml = cleanMojibake(rawHtml);
+
+    // 8. Return cleaned HTML to client
+    return NextResponse.json({ html: cleanedHtml });
   } catch (err) {
-    console.error('brand-voice GET error', err);
-    return NextResponse.json(
-      { reportUrl: null },
-      { status: 500, headers: { 'Cache-Control': 'no-store' } }
-    );
+    console.error('brand-voice fetch error:', err);
+    return NextResponse.json({ html: null }, { status: 500 });
   }
 }
