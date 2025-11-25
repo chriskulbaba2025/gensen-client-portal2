@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (!email) return NextResponse.json({ html: null }, { status: 400 });
 
     // 2) Get S3 key from Airtable
-    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={Clean Email}="${email}"`;
+    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={CleanEmail}="${email}"`;
 
     const res = await fetch(url, {
       headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}` },
