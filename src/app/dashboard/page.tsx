@@ -78,9 +78,9 @@ const tiles: Tile[] = [
     description: 'Ready-to-shoot scripts for YouTube, Reels, and TikTok.',
   },
   {
-    title: 'Agents',
-    imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/10/agents.webp',
-    href: '/dashboard/agents',
+    title: 'Social Insights',
+    imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/11/social-insights.png',
+    href: '/dashboard/opportunities',
     description: 'Automate workflows with custom AI agents tuned to your process.',
   },
 ];

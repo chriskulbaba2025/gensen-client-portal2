@@ -35,11 +35,6 @@ export default function LoginPage() {
     redirectUri
   )}&scope=openid+email+profile&state=gensen_login`;
 
-  // 🔑 Hosted UI Forgot Password link
-  const forgotPasswordUrl = `${ENV.NEXT_PUBLIC_COGNITO_DOMAIN}/forgotPassword?client_id=${
-    ENV.NEXT_PUBLIC_COGNITO_CLIENT_ID
-  }&redirect_uri=${encodeURIComponent(redirectUri)}`;
-
   return (
     <div className="w-screen min-h-screen flex flex-col items-center pt-[100px] bg-[#f7f9fc] dark:bg-[#000000]">
       {/* Logo */}
