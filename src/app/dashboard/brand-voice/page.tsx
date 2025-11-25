@@ -39,9 +39,14 @@ export default function BrandVoicePage() {
   }
 
   return (
-    <div
-      className="w-full min-h-screen bg-white text-[#0b1320] px-[20px] py-[30px]"
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
+   <div
+  className="
+    prose prose-lg max-w-none
+    prose-h2:text-[#10284a] prose-h2:font-bold prose-h2:text-[28px] prose-h2:mt-[32px] prose-h2:mb-[12px]
+    prose-h3:text-[#10284a] prose-h3:font-semibold prose-h3:text-[22px] prose-h3:mt-[24px] prose-h3:mb-[8px]
+    prose-p:text-[16px] prose-p:leading-relaxed
+  "
+  dangerouslySetInnerHTML={{ __html: html }}
+/>
   );
 }
