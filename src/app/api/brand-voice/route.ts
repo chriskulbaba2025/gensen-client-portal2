@@ -2,15 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyIdToken } from '@/lib/verifyCognitoJwt';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { cleanMojibake } from '@/lib/cleanMojibake';
+import { TextDecoder } from 'util';
 
 const s3 = new S3Client({ region: 'us-east-1' });
 const BUCKET = '8144-6256-0475-omni-reports';
 
-// Convert stream → string
+// Proper UTF-8 decoding for S3 streams
 async function streamToString(stream: AsyncIterable<Uint8Array>): Promise<string> {
-  const chunks: Uint8Array[] = [];
-  for await (const chunk of stream) chunks.push(chunk);
-  return Buffer.concat(chunks).toString('utf8');
+  const decoder = new TextDecoder('utf-8');
+  let result = '';
+
+  for await (const chunk of stream) {
+    result += decoder.decode(chunk, { stream: true });
+  }
+
+  result += decoder.decode();
+  return result;
 }
 
 export async function GET(req: NextRequest) {
@@ -23,7 +30,7 @@ export async function GET(req: NextRequest) {
     const email = payload.email;
     if (!email) return NextResponse.json({ html: null }, { status: 400 });
 
-    // 2) Get S3 key from Airtable
+    // 2) Pull S3 key from Airtable (field is "CleanEmail")
     const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={CleanEmail}="${email}"`;
 
     const res = await fetch(url, {
@@ -35,10 +42,11 @@ export async function GET(req: NextRequest) {
     const record = data.records?.[0];
     if (!record) return NextResponse.json({ html: null });
 
-    const s3Key = record.fields['S3 Key Voice']; // You said this is correct
+    // Your correct Airtable field for S3 voice report
+    const s3Key = record.fields['S3 Key Voice'];
     if (!s3Key) return NextResponse.json({ html: null });
 
-    // 3) Fetch HTML from S3
+    // 3) Fetch HTML file from S3 bucket
     const s3Object = await s3.send(
       new GetObjectCommand({
         Bucket: BUCKET,
@@ -49,12 +57,13 @@ export async function GET(req: NextRequest) {
     const body = s3Object.Body;
     if (!body) return NextResponse.json({ html: null }, { status: 500 });
 
+    // 4) Decode S3 content properly as UTF-8
     const rawHtml = await streamToString(body as AsyncIterable<Uint8Array>);
 
-    // 4) Clean mojibake
+    // 5) Clean mojibake — preserves ALL tags
     const cleanedHtml = cleanMojibake(rawHtml);
 
-    // 5) Return clean HTML to the frontend
+    // 6) Return clean HTML to frontend
     return NextResponse.json({ html: cleanedHtml });
 
   } catch (err) {
