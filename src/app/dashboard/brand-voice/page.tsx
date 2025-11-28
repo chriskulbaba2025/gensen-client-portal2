@@ -11,6 +11,10 @@ export default function BrandVoicePage() {
       try {
         const res = await fetch('/api/brand-voice', { cache: 'no-store' });
         const data = await res.json();
+        
+        // 🌟 DIAGNOSTIC LOG: Check the exact string content received from the server
+        console.log('Received HTML String (Check for &lt;):', data.html ? data.html.substring(0, 100) : 'No content');
+
         setHtml(data.html || null);
       } catch {
         setHtml(null);
@@ -37,11 +41,12 @@ export default function BrandVoicePage() {
       </div>
     );
   }
+  
+  // This rendering block is structurally correct for rendering HTML
   return (
-  <div
-    className="max-w-[760px] mx-auto px-4 py-6 text-[#0b1320]"
-    dangerouslySetInnerHTML={{ __html: html }}
-  />
-);
-
+    <div
+      className="max-w-[760px] mx-auto px-4 py-6 text-[#0b1320]"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
 }
