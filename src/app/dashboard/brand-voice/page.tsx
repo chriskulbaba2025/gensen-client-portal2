@@ -42,6 +42,7 @@ export default function BrandVoicePage() {
   return (
     <div
       className="max-w-[760px] mx-auto px-4 py-6 text-[#0b1320]"
+      style={{ whiteSpace: 'normal' }} // The fix: overrides hidden white-space: pre-wrap; rule
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );
