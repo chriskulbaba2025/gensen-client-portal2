@@ -26,9 +26,12 @@ export async function GET(req: NextRequest) {
     const token = req.cookies.get('gensen_session')?.value;
     if (!token) return NextResponse.json({ html: null }, { status: 401 });
 
-    const payload = await verifyIdToken(token);
-    const email = payload.email;
-    if (!email) return NextResponse.json({ html: null }, { status: 400 });
+  const payload = await verifyIdToken(token);
+const rawEmail = String(payload.email || "");
+const email = rawEmail.trim().toLowerCase().replace(/\s+/g, "");
+
+if (!email) return NextResponse.json({ html: null }, { status: 400 });
+
 
     // 2) Query Airtable by CleanEmail
     const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={CleanEmail}="${email}"`;
