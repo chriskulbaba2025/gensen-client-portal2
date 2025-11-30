@@ -1,8 +1,55 @@
-import { NextResponse } from "next/server";
+/* eslint-disable no-unused-vars */
 
-export async function GET() {
-  return NextResponse.json({
-    table: process.env.DYNAMO_TABLE,
-    region: process.env.AWS_REGION,
+import { NextResponse } from "next/server";
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { decodeJwt } from "jose";
+
+/** Extract Cognito sub from the session cookie */
+function getSubFromCookie(req: Request): string | null {
+  const cookie = req.headers.get("cookie") || "";
+  const token = cookie
+    .split(";")
+    .find((c) => c.trim().startsWith("gensen_session="))
+    ?.split("=")[1];
+
+  if (!token) return null;
+
+  try {
+    const decoded: any = decodeJwt(token);
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+}
+
+export async function GET(req: Request) {
+  const sub = getSubFromCookie(req);
+  if (!sub) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const client = new DynamoDBClient({
+    region: process.env.AWS_REGION ?? "us-east-1",
   });
+
+  /** Fetch all hubs (SortKey begins with HUB_) */
+  const cmd = new QueryCommand({
+    TableName: process.env.DYNAMO_TABLE,
+    KeyConditionExpression: "ClientID = :c AND begins_with(SortKey, :hub)",
+    ExpressionAttributeValues: {
+      ":c": { S: `sub#${sub}` },
+      ":hub": { S: "HUB_" },
+    },
+  });
+
+  const result = await client.send(cmd);
+
+  const hubs =
+    result.Items?.map((item: Record<string, any>) => ({
+      id: item.SortKey?.S ?? "",
+      title: item.Title?.S ?? "",
+      hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+    })) ?? [];
+
+  return NextResponse.json(hubs);
 }
