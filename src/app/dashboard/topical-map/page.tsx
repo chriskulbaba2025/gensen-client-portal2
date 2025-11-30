@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { getHubs } from "@/lib/airtable";
 import { HubData } from "@/types/HubData";
 
 // Client-only D3 wheel
@@ -14,7 +13,18 @@ export default function TopicalMapPage() {
   const [data, setData] = useState<HubData[]>([]);
 
   useEffect(() => {
-    getHubs().then((hubs) => setData(hubs));
+    fetch("/api/get-hubs")
+      .then((res) => res.json())
+      .then((items) => {
+        const hubs: HubData[] = items.map((item: any) => ({
+          id: item.SortKey.S,
+          title: item.Title?.S ?? "",
+          hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+        }));
+
+        setData(hubs);
+      })
+      .catch((err) => console.error("Dynamo get-hubs error:", err));
   }, []);
 
   return (
