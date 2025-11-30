@@ -32,13 +32,14 @@ export async function GET(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  /** Correct hub query without prefix */
+  /** Fetch all hubs: SortKey starts with "HUB#" */
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE,
-    KeyConditionExpression: "ClientID = :c AND begins_with(SortKey, :hub)",
+    KeyConditionExpression:
+      "ClientID = :c AND begins_with(SortKey, :hubPrefix)",
     ExpressionAttributeValues: {
       ":c": { S: sub },
-      ":hub": { S: "HUB" },
+      ":hubPrefix": { S: "HUB#" },
     },
   });
 
@@ -47,7 +48,7 @@ export async function GET(req: Request) {
   const hubs =
     result.Items?.map((item: Record<string, any>) => ({
       id: item.SortKey?.S ?? "",
-      title: item.title?.S ?? "",
+      title: item.Title?.S ?? item.title?.S ?? "",
       hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
     })) ?? [];
 
