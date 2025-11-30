@@ -1,5 +1,7 @@
+/* eslint-disable no-unused-vars */
+
 // src/app/spoke/[id]/page.tsx
-import { NextResponse } from "next/server";
+
 import SpokeClient from "./SpokeClient";
 
 interface SpokeRecord {
@@ -82,6 +84,7 @@ export default async function SpokePage({
         <h1 className="text-[26px] font-bold text-[#10284a] mb-[20px]">
           Publishing Progress
         </h1>
+
         <div className="space-y-[16px]">
           {intents.map((intent) => {
             const total = count(intent);
@@ -97,6 +100,7 @@ export default async function SpokePage({
                     {done}/{total} ({Math.round(percent)}%)
                   </span>
                 </div>
+
                 <div className="w-full bg-[#e9eef6] rounded-full h-[16px]">
                   <div
                     className="h-[16px] rounded-full transition-all duration-300"

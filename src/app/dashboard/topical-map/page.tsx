@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -16,11 +18,19 @@ export default function TopicalMapPage() {
     fetch("/api/get-hubs")
       .then((res) => res.json())
       .then((items) => {
-        const hubs: HubData[] = items.map((item: any) => ({
-          id: item.SortKey.S,
-          title: item.Title?.S ?? "",
-          hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
-        }));
+        const hubs: HubData[] = items.map(
+          (item: Record<string, unknown>) => ({
+            id:
+              (item as any).SortKey?.S ??
+              "",
+            title:
+              (item as any).Title?.S ??
+              "",
+            hub: (item as any).HubNumber?.N
+              ? Number((item as any).HubNumber.N)
+              : 0,
+          })
+        );
 
         setData(hubs);
       })

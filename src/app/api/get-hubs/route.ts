@@ -1,9 +1,11 @@
+/* eslint-disable no-unused-vars */
+
 import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-// Get Cognito SUB from cookie token
-async function getSubFromCookie(req: Request) {
+/** Extract Cognito sub from the session cookie */
+function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
     .split(";")
@@ -12,27 +14,43 @@ async function getSubFromCookie(req: Request) {
 
   if (!token) return null;
 
-  const decoded = decodeJwt(token);
-  return decoded.sub || null;
+  try {
+    const decoded: any = decodeJwt(token);
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET(req: Request) {
-  const sub = await getSubFromCookie(req);
+  const sub = getSubFromCookie(req);
   if (!sub) {
-    return NextResponse.json({ error: "No Cognito sub" }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const client = new DynamoDBClient({ region: "us-east-1" });
+  const client = new DynamoDBClient({
+    region: process.env.AWS_REGION ?? "us-east-1",
+  });
 
+  /** Query only hub-level records: SpokeNumber = 0 */
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE,
     KeyConditionExpression: "ClientID = :c",
+    FilterExpression: "SpokeNumber = :zero",
     ExpressionAttributeValues: {
       ":c": { S: `sub#${sub}` },
+      ":zero": { N: "0" },
     },
   });
 
   const result = await client.send(cmd);
 
-  return NextResponse.json(result.Items || []);
+  const hubs =
+    result.Items?.map((item: Record<string, any>) => ({
+      id: item.SortKey?.S ?? "",
+      title: item.Title?.S ?? "",
+      hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+    })) ?? [];
+
+  return NextResponse.json(hubs);
 }

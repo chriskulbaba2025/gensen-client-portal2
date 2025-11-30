@@ -1,6 +1,9 @@
+/* eslint-disable no-unused-vars */
+
 import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
+
 
 function getSubFromCookie(req: Request) {
   const cookie = req.headers.get("cookie") || "";

@@ -11,7 +11,6 @@ export async function GET(req: NextRequest) {
 
   try {
     // verify and decode Cognito JWT
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload: any = await verifyIdToken(token);
   
     const email = (payload.email || '').toLowerCase();
