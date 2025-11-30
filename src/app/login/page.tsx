@@ -39,15 +39,16 @@ export default function LoginPage() {
     <div className="w-screen min-h-screen flex flex-col items-center pt-[100px] bg-[#f7f9fc] dark:bg-[#000000]">
       {/* Logo */}
       <div className="flex justify-center mb-[30px] w-full">
-        <div className="relative w-[220px] h-[180px]">
-          <Image
-            src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
-            alt="Gensen Logo"
-            fill
-            className="object-contain rounded-[15px]"
-            priority
-          />
-        </div>
+        <div className="flex justify-center mb-[30px] w-full">
+  <Image
+    src="https://omnipressence.com/wp-content/uploads/2025/09/Gensen-Logo-Final-version-lower-case-logo-and-spaces1-356x295-1.webp"
+    alt="Gensen Logo"
+    width={220}
+    height={180}
+    className="object-contain rounded-[15px]"
+    priority
+  />
+</div>
       </div>
 
       {/* Title */}
