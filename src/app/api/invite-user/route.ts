@@ -47,16 +47,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // 2. UPSERT INTO AIRTABLE
+    // 2. UPSERT INTO AIRTABLE (only section changed)
     const airtableRes = await fetch(
       `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`,
       {
-        method: "POST",
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${AIRTABLE_TOKEN}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          performUpsert: {
+            fieldsToMergeOn: ["Email"],
+          },
           records: [
             {
               fields: {
