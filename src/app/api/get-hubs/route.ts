@@ -32,14 +32,13 @@ export async function GET(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  /** Query only hub-level records: SpokeNumber = 0 */
+  /** Correct hub query: SK begins with "HUB_" */
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE,
-    KeyConditionExpression: "ClientID = :c",
-    FilterExpression: "SpokeNumber = :zero",
+    KeyConditionExpression: "ClientID = :c AND begins_with(SortKey, :hub)",
     ExpressionAttributeValues: {
       ":c": { S: `sub#${sub}` },
-      ":zero": { N: "0" },
+      ":hub": { S: "HUB_" },
     },
   });
 
