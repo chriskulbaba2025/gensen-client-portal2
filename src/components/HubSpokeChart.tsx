@@ -20,7 +20,6 @@ export default function HubSpokeChart({
 }) {
   const router = useRouter();
 
-  // Only show HUB items (correct prefix)
   const hubs = data.filter((item) => item.id.startsWith("HUB#"));
 
   const width = 850;
@@ -34,9 +33,9 @@ export default function HubSpokeChart({
 
   const arcGen = d3.arc().innerRadius(100).outerRadius(radius);
 
-  // Short, clean truncation for wheel labels
+  // Slightly looser truncation now that wrapping exists
   const truncate = (t: string) =>
-    t.length > 22 ? t.slice(0, 22).trim() + "…" : t;
+    t.length > 40 ? t.slice(0, 40).trim() + "…" : t;
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -75,15 +74,12 @@ export default function HubSpokeChart({
                   strokeWidth={3}
                   style={{ cursor: "pointer", transition: "0.25s" }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as SVGPathElement).style.transform =
-                      "scale(1.05)";
-                    (e.currentTarget as SVGPathElement).style.filter =
-                      `drop-shadow(0 0 15px ${color})`;
+                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.filter = `drop-shadow(0 0 15px ${color})`;
                   }}
                   onMouseLeave={(e) => {
-                    (e.currentTarget as SVGPathElement).style.transform =
-                      "scale(1)";
-                    (e.currentTarget as SVGPathElement).style.filter = "none";
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.filter = "none";
                   }}
                   onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
                 />
@@ -96,9 +92,8 @@ export default function HubSpokeChart({
                 const color = colors[i % colors.length];
                 const angle = (d.startAngle + d.endAngle) / 2;
 
-                // BALANCED SPACING
-                const labelRadius = radius + 105; // evenly spaced outer labels
-                const lineRadius = radius + 25; // short connector line
+                const labelRadius = radius + 105;
+                const lineRadius = radius + 25;
 
                 const x = Math.cos(angle - Math.PI / 2) * labelRadius;
                 const y = Math.sin(angle - Math.PI / 2) * labelRadius;
@@ -107,7 +102,9 @@ export default function HubSpokeChart({
                 const lineY = Math.sin(angle - Math.PI / 2) * lineRadius;
 
                 const label = truncate(hubs[i].title);
-                const widthLimit = Math.min(label.length * 8 + 40, 220);
+
+                const boxWidth = 200;        // FIXED WIDTH — good for wrapping
+                const boxHeight = 70;        // EXPANDED FOR MULTI-LINE
 
                 return (
                   <motion.g
@@ -116,6 +113,7 @@ export default function HubSpokeChart({
                     animate={{ opacity: mounted ? 1 : 0 }}
                     transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
                   >
+                    {/* Connector Line */}
                     <line
                       x1={lineX}
                       y1={lineY}
@@ -125,11 +123,12 @@ export default function HubSpokeChart({
                       strokeWidth={1.5}
                     />
 
+                    {/* Label Box */}
                     <foreignObject
-                      x={x - widthLimit / 2}
-                      y={y - 80}
-                      width={widthLimit}
-                      height={80}
+                      x={x - boxWidth / 2}
+                      y={y - 90}
+                      width={boxWidth}
+                      height={boxHeight}
                       xmlns="http://www.w3.org/1999/xhtml"
                     >
                       <div
@@ -140,23 +139,25 @@ export default function HubSpokeChart({
                           textAlign: "center",
                           background: "rgba(255,255,255,0.95)",
                           borderRadius: "10px",
-                          padding: "8px 10px",
-                          fontSize: "16px",
+                          padding: "8px 12px",
+                          fontSize: "15px",
                           fontWeight: 600,
                           color: "#0b1320",
+                          lineHeight: "1.3",
                           border: "1px solid #dbeafe",
                           cursor: "pointer",
                           transition: "0.2s",
+                          whiteSpace: "normal",      // ENABLE WRAPPING
+                          wordWrap: "break-word",
                         }}
                         onMouseEnter={(e) => {
-                          const el = e.currentTarget as HTMLDivElement;
-                          el.style.background = color;
-                          el.style.color = "white";
+                          e.currentTarget.style.background = color;
+                          e.currentTarget.style.color = "white";
                         }}
                         onMouseLeave={(e) => {
-                          const el = e.currentTarget as HTMLDivElement;
-                          el.style.background = "rgba(255,255,255,0.95)";
-                          el.style.color = "#0b1320";
+                          e.currentTarget.style.background =
+                            "rgba(255,255,255,0.95)";
+                          e.currentTarget.style.color = "#0b1320";
                         }}
                         onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
                       >
@@ -168,7 +169,7 @@ export default function HubSpokeChart({
               })}
             </AnimatePresence>
 
-            {/* Center circle with business name */}
+            {/* Center circle showing business name */}
             <circle r={95} fill="white" stroke="#67b7ff" strokeWidth={2} />
             <text
               textAnchor="middle"
