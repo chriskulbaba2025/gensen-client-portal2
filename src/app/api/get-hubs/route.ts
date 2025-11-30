@@ -48,8 +48,9 @@ export async function GET(req: Request) {
   const hubs =
     result.Items?.map((item: Record<string, any>) => ({
       id: item.SortKey?.S ?? "",
-      title: item.Title?.S ?? item.title?.S ?? "",
+      title: item.title?.S ?? "",            // ALWAYS lowercase
       hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+      businessName: item.businessName?.S ?? ""  // ADD THIS
     })) ?? [];
 
   return NextResponse.json(hubs);

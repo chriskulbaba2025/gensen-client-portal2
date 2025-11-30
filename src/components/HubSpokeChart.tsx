@@ -11,11 +11,17 @@ interface HubSpokeItem {
   hub: number;
 }
 
-export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
+export default function HubSpokeChart({
+  data,
+  businessName,
+}: {
+  data: HubSpokeItem[];
+  businessName: string;
+}) {
   const router = useRouter();
 
-  // Only show HUB items
-  const hubs = data.filter((item) => item.id.startsWith("HUB_"));
+  // Only show HUB items (correct prefix)
+  const hubs = data.filter((item) => item.id.startsWith("HUB#"));
 
   const width = 850;
   const height = 850;
@@ -28,7 +34,7 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
 
   const arcGen = d3.arc().innerRadius(100).outerRadius(radius);
 
-  // TRUNCATE TITLES — KEEP CLEAN, READABLE LABELS
+  // Short, clean truncation for wheel labels
   const truncate = (t: string) =>
     t.length > 22 ? t.slice(0, 22).trim() + "…" : t;
 
@@ -69,12 +75,15 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
                   strokeWidth={3}
                   style={{ cursor: "pointer", transition: "0.25s" }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.05)";
-                    e.currentTarget.style.filter = `drop-shadow(0 0 15px ${color})`;
+                    (e.currentTarget as SVGPathElement).style.transform =
+                      "scale(1.05)";
+                    (e.currentTarget as SVGPathElement).style.filter =
+                      `drop-shadow(0 0 15px ${color})`;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = "scale(1)";
-                    e.currentTarget.style.filter = "none";
+                    (e.currentTarget as SVGPathElement).style.transform =
+                      "scale(1)";
+                    (e.currentTarget as SVGPathElement).style.filter = "none";
                   }}
                   onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
                 />
@@ -87,8 +96,9 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
                 const color = colors[i % colors.length];
                 const angle = (d.startAngle + d.endAngle) / 2;
 
-                const labelRadius = radius + 85;
-                const lineRadius = radius + 15;
+                // BALANCED SPACING
+                const labelRadius = radius + 105; // evenly spaced outer labels
+                const lineRadius = radius + 25; // short connector line
 
                 const x = Math.cos(angle - Math.PI / 2) * labelRadius;
                 const y = Math.sin(angle - Math.PI / 2) * labelRadius;
@@ -139,12 +149,14 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
                           transition: "0.2s",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = color;
-                          e.currentTarget.style.color = "white";
+                          const el = e.currentTarget as HTMLDivElement;
+                          el.style.background = color;
+                          el.style.color = "white";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "rgba(255,255,255,0.95)";
-                          e.currentTarget.style.color = "#0b1320";
+                          const el = e.currentTarget as HTMLDivElement;
+                          el.style.background = "rgba(255,255,255,0.95)";
+                          el.style.color = "#0b1320";
                         }}
                         onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
                       >
@@ -156,6 +168,7 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
               })}
             </AnimatePresence>
 
+            {/* Center circle with business name */}
             <circle r={95} fill="white" stroke="#67b7ff" strokeWidth={2} />
             <text
               textAnchor="middle"
@@ -164,7 +177,7 @@ export default function HubSpokeChart({ data }: { data: HubSpokeItem[] }) {
               fontSize="18px"
               fontWeight={700}
             >
-              Main Hubs
+              {businessName || "Your Business"}
             </text>
           </g>
         </svg>
