@@ -4,7 +4,6 @@ import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-/** Extract Cognito sub from the session cookie */
 function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
@@ -32,26 +31,28 @@ export async function GET(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  /** Fetch all hubs: SortKey starts with "HUB#" */
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE,
     KeyConditionExpression:
-      "ClientID = :c AND begins_with(SortKey, :hubPrefix)",
+      "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
       ":c": { S: sub },
-      ":hubPrefix": { S: "HUB#" },
+      ":prefix": { S: "HUB#" },
     },
   });
 
   const result = await client.send(cmd);
 
-  const hubs =
-    result.Items?.map((item: Record<string, any>) => ({
-      id: item.SortKey?.S ?? "",
-      title: item.title?.S ?? "",            // ALWAYS lowercase
-      hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
-      businessName: item.businessName?.S ?? ""  // ADD THIS
-    })) ?? [];
+  // STRICT FILTER – only return items like "HUB#001"
+  const onlyHubs =
+    result.Items?.filter((item: any) => item.SortKey?.S.length === 7) ?? [];
+
+  const hubs = onlyHubs.map((item: any) => ({
+    id: item.SortKey.S,
+    title: item.title?.S ?? "",
+    hub: Number(item.HubNumber.N),
+    businessName: item.businessName?.S ?? "",
+  }));
 
   return NextResponse.json(hubs);
 }
