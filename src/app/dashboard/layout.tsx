@@ -6,23 +6,22 @@ import QuickLinks from "@/components/QuickLinks";
 import useInactivityTimeout from "@/hooks/useInactivityTimeout";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  // Auto-logout hook (already implemented in your project)
+  // 🕒 Session timeout handler
   useInactivityTimeout();
 
+  // ✅ All auth checks handled server-side by middleware
   return (
     <ClientWrapper>
-      <div className="min-h-screen flex bg-[#f8f9fb]">
-        
-        {/* Left Navigation Rail */}
-        <aside className="w-[80px] border-r border-gray-200 bg-white">
-          <QuickLinks />
+      <div className="min-h-screen flex">
+        {/* Left rail */}
+        <aside className="w-[80px]">
+          <QuickLinks inline />
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-8">
+        {/* Main content area */}
+        <main className="flex-1 p-[20px]">
           {children}
         </main>
-
       </div>
     </ClientWrapper>
   );
