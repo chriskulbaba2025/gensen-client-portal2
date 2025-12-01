@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
     ExpressionAttributeValues: {
       ":c": { S: `sub#${sub}` },
-      ":hub": { N: String(hubNumber) },
+      ":hub": { N: `${hubNumber}` },
       ":zero": { N: "0" },
     },
   });
