@@ -23,15 +23,14 @@ export default async function SpokePage({
   if (!hubNumber || Number.isNaN(hubNumber)) {
     return (
       <main className="p-[40px] text-center">
-        <h1 className="text-xl font-bold text-red-600">
-          Invalid hub number
-        </h1>
+        <h1 className="text-xl font-bold text-red-600">Invalid hub number</h1>
       </main>
     );
   }
 
-  // UPDATED: relative path, server-safe
-  const res = await fetch("/api/get-spokes", {
+  // ABSOLUTE URL — required for Server Components in production
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL!;
+  const res = await fetch(`${baseUrl}/api/get-spokes`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
@@ -41,9 +40,7 @@ export default async function SpokePage({
   if (!res.ok) {
     return (
       <main className="p-[40px] text-center">
-        <h1 className="text-xl font-bold text-red-600">
-          Could not load spokes
-        </h1>
+        <h1 className="text-xl font-bold text-red-600">Could not load spokes</h1>
       </main>
     );
   }
