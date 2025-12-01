@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface HubSpokeItem {
   id: string;
   title: string;
-  hub: number;
+  hub?: number; // allow Dynamo to omit, we can fallback
 }
 
 export default function HubSpokeChart({
@@ -27,11 +27,9 @@ export default function HubSpokeChart({
 
   const colorDefault = ["#0aa2fb", "#6ca439", "#f66630"];
 
-  /** Do NOT use typed generics here — let TS infer */
   const pieGen = d3.pie().value(() => 1).sort(null);
   const arcs = pieGen(data);
 
-  /** No PieArcDatum type — TS will infer correctly */
   const arcGen = d3.arc().innerRadius(100).outerRadius(radius);
 
   const sentenceCase = (t: string) =>
@@ -40,6 +38,19 @@ export default function HubSpokeChart({
       .split(" ")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
+
+  // Robust hub number from Dynamo-style id if needed
+  const getHubNumber = (item: HubSpokeItem, index: number) => {
+    if (typeof item.hub === "number" && !Number.isNaN(item.hub)) {
+      return item.hub;
+    }
+    const match = item.id?.match(/HUB#0*([0-9]+)/i);
+    if (match && match[1]) {
+      const n = Number(match[1]);
+      if (!Number.isNaN(n)) return n;
+    }
+    return index + 1;
+  };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -71,6 +82,7 @@ export default function HubSpokeChart({
             {/* WEDGES */}
             {arcs.map((d: any, i: number) => {
               const color = colorDefault[i % colorDefault.length];
+              const hubNumber = getHubNumber(data[i], i);
               return (
                 <path
                   key={`arc-${i}`}
@@ -91,7 +103,7 @@ export default function HubSpokeChart({
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() => router.push(`/spoke/${data[i].hub}`)}
+                  onClick={() => router.push(`/spoke/${hubNumber}`)}
                 />
               );
             })}
@@ -116,6 +128,7 @@ export default function HubSpokeChart({
                 const textWidth = Math.min(label.length * 8 + 40, 260);
 
                 const isLeft = x < 0;
+                const hubNumber = getHubNumber(data[i], i);
 
                 return (
                   <motion.g
@@ -168,7 +181,7 @@ export default function HubSpokeChart({
                           border: "1px solid #dbeafe",
                           transition: "all 0.25s ease",
                         }}
-                        onClick={() => router.push(`/spoke/${data[i].hub}`)}
+                        onClick={() => router.push(`/spoke/${hubNumber}`)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = color;
                           e.currentTarget.style.color = "#ffffff";

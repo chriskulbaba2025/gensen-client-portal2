@@ -116,7 +116,6 @@ export default async function SpokePage({
         </div>
       </section>
 
-      {/* Existing UI, unchanged */}
       <SpokeClient grouped={grouped} />
     </main>
   );
