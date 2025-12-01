@@ -30,15 +30,13 @@ export default async function SpokePage({
     );
   }
 
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_SITE_URL}/api/get-spokes`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      cache: "no-store",
-      body: JSON.stringify({ hubNumber }),
-    }
-  );
+  // UPDATED: relative path, server-safe
+  const res = await fetch("/api/get-spokes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    body: JSON.stringify({ hubNumber }),
+  });
 
   if (!res.ok) {
     return (
