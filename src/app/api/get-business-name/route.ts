@@ -14,6 +14,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Decode Cognito token
   let decoded: any = {};
   let email = "";
 
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
   const debug = urlObj.searchParams.get("debug") === "1";
 
   const baseId = process.env.AIRTABLE_BASE_ID!;
-  const tableName = "Brand Voice Base";
+  const tableName = "Responses";         // ✅ CORRECT TABLE NAME
   const tokenAir = process.env.AIRTABLE_TOKEN!;
 
   const formula = `{CleanEmail} = "${email}"`;
@@ -47,11 +48,12 @@ export async function GET(req: Request) {
 
   const json = await response.json();
 
+  // Debug output so we can see Airtable’s raw response
   if (debug) {
     return NextResponse.json({
       email_used: email,
       formula_used: formula,
-      airtable_response: json
+      airtable_response: json,
     });
   }
 
