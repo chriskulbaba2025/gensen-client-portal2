@@ -1,6 +1,7 @@
 import "./globals.css";
 import type { ReactNode } from "react";
 import { Raleway } from "next/font/google";
+import LayoutClient from "./LayoutClient";
 
 export const metadata = {
   title: "GENSEN Voice Forge",
@@ -20,9 +21,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body
-        className={`${raleway.variable} font-[Raleway] flex flex-col min-h-screen bg-[#f7f9fc] text-[#0a0a0a]`}
+        className={`${raleway.variable} font-[Raleway] min-h-screen bg-[#f7f9fc] text-[#0a0a0a]`}
       >
-        {children}
+        <LayoutClient>{children}</LayoutClient>
       </body>
     </html>
   );
