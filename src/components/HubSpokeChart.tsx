@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import * as d3 from "d3-shape";
 import { useRouter } from "next/navigation";
+import { Search, ClipboardList, CheckCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface HubSpokeItem {
@@ -20,36 +21,42 @@ export default function HubSpokeChart({
 }) {
   const router = useRouter();
 
-  const hubs = data.filter((item) => item.id.startsWith("HUB#"));
-
   const width = 850;
   const height = 850;
   const radius = Math.min(width, height) / 2 - 160;
 
-  const colors = ["#0aa2fb", "#6ca439", "#f66630"];
+  const colorDefault = ["#0aa2fb", "#6ca439", "#f66630"];
 
+  /** Do NOT use typed generics here — let TS infer */
   const pieGen = d3.pie().value(() => 1).sort(null);
-  const arcs = pieGen(hubs);
+  const arcs = pieGen(data);
 
+  /** No PieArcDatum type — TS will infer correctly */
   const arcGen = d3.arc().innerRadius(100).outerRadius(radius);
 
-  // Slightly looser truncation now that wrapping exists
-  const truncate = (t: string) =>
-    t.length > 40 ? t.slice(0, 40).trim() + "…" : t;
+  const sentenceCase = (t: string) =>
+    t
+      .replace(/-/g, " ")
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setTimeout(() => setMounted(true), 150);
+    const t = setTimeout(() => setMounted(true), 150);
+    return () => clearTimeout(t);
   }, []);
 
   return (
     <div className="flex flex-col items-center justify-center p-10 bg-[#f0f2f5] rounded-xl">
       <div className="bg-gradient-to-b from-[#2a4a7f] to-[#0b1320] w-full rounded-xl p-10 text-white relative">
-
         <h2 className="text-3xl font-bold mb-8 text-center bg-gradient-to-r from-[#00aaff] to-[#67b7ff] bg-clip-text text-transparent">
-          GENSEN – Topical Content Map
+          {businessName
+            ? `${businessName} · Topical Map`
+            : "GENSEN – Topical Content Map"}
         </h2>
 
+        {/* SVG WHEEL */}
         <svg width={width} height={height} style={{ overflow: "visible" }}>
           <defs>
             <radialGradient id="bgGradient" cx="50%" cy="50%" r="80%">
@@ -61,39 +68,43 @@ export default function HubSpokeChart({
           <rect width={width} height={height} fill="url(#bgGradient)" rx={24} />
 
           <g transform={`translate(${width / 2}, ${height / 2})`}>
-            {/* Wedges */}
+            {/* WEDGES */}
             {arcs.map((d: any, i: number) => {
-              const color = colors[i % colors.length];
-
+              const color = colorDefault[i % colorDefault.length];
               return (
                 <path
                   key={`arc-${i}`}
                   d={arcGen(d) || undefined}
                   fill={color}
-                  stroke="#fff"
-                  strokeWidth={3}
-                  style={{ cursor: "pointer", transition: "0.25s" }}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  style={{
+                    cursor: "pointer",
+                    transition: "transform 0.25s ease, filter 0.25s ease",
+                    transformOrigin: "center center",
+                  }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "scale(1.05)";
+                    e.currentTarget.style.transform = "scale(1.03)";
                     e.currentTarget.style.filter = `drop-shadow(0 0 15px ${color})`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
+                  onClick={() => router.push(`/spoke/${data[i].hub}`)}
                 />
               );
             })}
 
-            {/* Labels */}
+            {/* LABELS */}
             <AnimatePresence>
               {arcs.map((d: any, i: number) => {
-                const color = colors[i % colors.length];
+                const color = colorDefault[i % colorDefault.length];
                 const angle = (d.startAngle + d.endAngle) / 2;
 
-                const labelRadius = radius + 105;
-                const lineRadius = radius + 25;
+                const outerLabelRadius = radius + 100;
+                const labelRadius = i % 2 === 0 ? outerLabelRadius : radius + 70;
+                const lineRadius = radius + 10;
 
                 const x = Math.cos(angle - Math.PI / 2) * labelRadius;
                 const y = Math.sin(angle - Math.PI / 2) * labelRadius;
@@ -101,67 +112,74 @@ export default function HubSpokeChart({
                 const lineX = Math.cos(angle - Math.PI / 2) * lineRadius;
                 const lineY = Math.sin(angle - Math.PI / 2) * lineRadius;
 
-                const label = truncate(hubs[i].title);
+                const label = data[i].title;
+                const textWidth = Math.min(label.length * 8 + 40, 260);
 
-                const boxWidth = 200;        // FIXED WIDTH — good for wrapping
-                const boxHeight = 70;        // EXPANDED FOR MULTI-LINE
+                const isLeft = x < 0;
 
                 return (
                   <motion.g
                     key={`label-${i}`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: mounted ? 1 : 0 }}
-                    transition={{ delay: 0.2 + i * 0.05, duration: 0.4 }}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={
+                      mounted
+                        ? { opacity: 1, scale: 1 }
+                        : { opacity: 0, scale: 0.9 }
+                    }
+                    transition={{
+                      duration: 0.4,
+                      delay: 0.03 * i,
+                      ease: "easeOut",
+                    }}
                   >
-                    {/* Connector Line */}
+                    {/* Connector line */}
                     <line
                       x1={lineX}
                       y1={lineY}
                       x2={x}
-                      y2={y - 40}
-                      stroke="#ffffff"
+                      y2={y}
+                      stroke={color}
                       strokeWidth={1.5}
                     />
 
-                    {/* Label Box */}
+                    {/* Label background + text using foreignObject */}
                     <foreignObject
-                      x={x - boxWidth / 2}
-                      y={y - 90}
-                      width={boxWidth}
-                      height={boxHeight}
-                      xmlns="http://www.w3.org/1999/xhtml"
+                      x={x + (isLeft ? -textWidth : 0)}
+                      y={y - 20}
+                      width={textWidth}
+                      height={80}
+                      style={{ overflow: "visible" }}
                     >
                       <div
                         style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          textAlign: "center",
-                          background: "rgba(255,255,255,0.95)",
-                          borderRadius: "10px",
-                          padding: "8px 12px",
-                          fontSize: "15px",
-                          fontWeight: 600,
+                          background: "rgba(255,255,255,0.96)",
+                          borderRadius: "9999px",
+                          padding: "6px 14px",
+                          fontSize: "13px",
+                          lineHeight: "1.45",
                           color: "#0b1320",
-                          lineHeight: "1.3",
-                          border: "1px solid #dbeafe",
+                          boxShadow:
+                            "0 10px 25px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(148,163,184,0.3)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          textAlign: "center",
                           cursor: "pointer",
-                          transition: "0.2s",
-                          whiteSpace: "normal",      // ENABLE WRAPPING
-                          wordWrap: "break-word",
+                          border: "1px solid #dbeafe",
+                          transition: "all 0.25s ease",
                         }}
+                        onClick={() => router.push(`/spoke/${data[i].hub}`)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = color;
-                          e.currentTarget.style.color = "white";
+                          e.currentTarget.style.color = "#ffffff";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background =
-                            "rgba(255,255,255,0.95)";
+                            "rgba(255,255,255,0.96)";
                           e.currentTarget.style.color = "#0b1320";
                         }}
-                        onClick={() => router.push(`/spoke/${hubs[i].hub}`)}
                       >
-                        {label}
+                        {sentenceCase(label)}
                       </div>
                     </foreignObject>
                   </motion.g>
@@ -169,7 +187,7 @@ export default function HubSpokeChart({
               })}
             </AnimatePresence>
 
-            {/* Center circle showing business name */}
+            {/* CENTER CIRCLE */}
             <circle r={95} fill="white" stroke="#67b7ff" strokeWidth={2} />
             <text
               textAnchor="middle"
@@ -178,10 +196,60 @@ export default function HubSpokeChart({
               fontSize="18px"
               fontWeight={700}
             >
-              {businessName || "Your Business"}
+              {businessName || "Main Hubs"}
             </text>
           </g>
         </svg>
+
+        {/* LEGEND */}
+        <div className="mt-[40px] bg-[#e9eef6] text-[#0b1320] rounded-lg p-8">
+          {/* Short explainer block */}
+          <div className="text-[15px] leading-[24px] text-left max-w-[700px] mx-auto mb-6">
+            <p>
+              Each hub is colour-coded by funnel stage so you can see how topics
+              work together across your customer journey.
+            </p>
+            <p>
+              Blue builds awareness, green supports evaluation, and orange drives
+              action.
+            </p>
+            <p>
+              This gives you a quick way to balance reach, education, and
+              conversion instead of publishing at random.
+            </p>
+          </div>
+
+          {/* Funnel legend with icons */}
+          <div className="text-[16px] leading-[26px] text-left max-w-[700px] mx-auto">
+            <div className="flex items-center mb-[16px]">
+              <span className="w-[18px] h-[18px] rounded-full mr-[12px] bg-[#0aa2fb] border border-[#0b1320]" />
+              <Search size={18} className="mr-[8px] text-[#0aa2fb]" />
+              <span>
+                <strong>Awareness · Top-of-Funnel</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center mb-[16px]">
+              <span className="w-[18px] h-[18px] rounded-full mr-[12px] bg-[#6ca439] border border-[#0b1320]" />
+              <ClipboardList size={18} className="mr-[8px] text-[#6ca439]" />
+              <span>
+                <strong>Consideration · Mid-Funnel</strong>
+              </span>
+            </div>
+
+            <div className="flex items-center">
+              <span className="w-[18px] h-[18px] rounded-full mr-[12px] bg-[#f66630] border border-[#0b1320]" />
+              <CheckCircle size={18} className="mr-[8px] text-[#f66630]" />
+              <span>
+                <strong>Decision · Bottom-of-Funnel</strong>
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-8 text-[16px] text-center text-[#1c2a40]">
+            Hover or click a segment to explore its related content topics.
+          </p>
+        </div>
       </div>
     </div>
   );
