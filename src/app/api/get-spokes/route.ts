@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE,
+    TableName: process.env.DYNAMO_TABLE, // gensen_content
     KeyConditionExpression: "ClientID = :c",
     FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
     ExpressionAttributeValues: {
