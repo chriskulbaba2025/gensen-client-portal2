@@ -2,7 +2,6 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import AppClient from "./AppClient";
 import { Raleway } from 'next/font/google';
-import { ConditionalLayout } from '@/components/ConditionalLayout';
 
 export const metadata = {
   title: 'GENSEN Voice Forge',

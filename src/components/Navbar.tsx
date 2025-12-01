@@ -34,17 +34,7 @@ export default function Navbar() {
           label="Dashboard"
           Icon={Gauge}
         />
-        <NavItem
-          href="https://voice.omnipressence.com"
-          label="Brand Voice"
-          Icon={Gauge}
-        />
-        <NavItem
-          href="https://map.omnipressence.com"
-          label="Topical Map"
-          Icon={Gauge}
-        />
-        <NavItem
+               <NavItem
           href="https://portal.omnipressence.com/generate/step-1"
           label="Content Generator"
           Icon={Gauge}
