@@ -1,5 +1,6 @@
 import './globals.css';
 import type { ReactNode } from 'react';
+import AppClient from "./AppClient";
 import { Raleway } from 'next/font/google';
 import { ConditionalLayout } from '@/components/ConditionalLayout';
 
@@ -23,7 +24,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body
         className={`${raleway.variable} font-[Raleway] flex flex-col min-h-screen bg-[#f7f9fc] text-[#0a0a0a]`}
       >
-        <ConditionalLayout>{children}</ConditionalLayout>
+      <AppClient>{children}</AppClient>
+
+
       </body>
     </html>
   );
