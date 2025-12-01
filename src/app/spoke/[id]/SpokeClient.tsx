@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
 
 interface SpokeRecord {
   id: string;
@@ -11,76 +11,64 @@ interface SpokeRecord {
   status: string;
 }
 
-interface Group {
+interface GroupedItem {
   intent: string;
   color: string;
   records: SpokeRecord[];
 }
 
-export default function SpokeClient({ grouped }: { grouped: Group[] }) {
+export default function SpokeClient({ hubId }: { hubId: string }) {
+  const [grouped, setGrouped] = useState<GroupedItem[] | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const hubNumber = Number(hubId);
+
+    fetch("/api/get-spokes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hubNumber }),
+    })
+      .then((res) => res.json())
+      .then((records) => {
+        if (!Array.isArray(records)) {
+          setError(true);
+          return;
+        }
+
+        const intents = ["Informational", "Transactional", "Edge"];
+        const colors: Record<string, string> = {
+          Informational: "#0aa2fb",
+          Transactional: "#6ca439",
+          Edge: "#f66630",
+        };
+
+        const groupedData: GroupedItem[] = intents.map((intent) => ({
+          intent,
+          color: colors[intent],
+          records: records.filter((r) => r.intent === intent),
+        }));
+
+        setGrouped(groupedData);
+      })
+      .catch(() => setError(true));
+  }, [hubId]);
+
+  if (error) {
+    return (
+      <h1 className="text-xl font-bold text-red-600 text-center mt-[40px]">
+        Could not load spokes
+      </h1>
+    );
+  }
+
+  if (!grouped) {
+    return <p className="text-center mt-[40px]">Loading...</p>;
+  }
+
   return (
-    <div className="flex flex-col gap-[40px]">
-
-      {grouped.map((group) => {
-        if (!group.records || group.records.length === 0) return null;
-
-        return (
-          <section key={group.intent}>
-            {/* SECTION HEADER */}
-            <h2
-              className="text-[26px] font-bold mb-[20px]"
-              style={{ color: group.color }}
-            >
-              {group.intent} Articles
-            </h2>
-
-            {/* GRID OF CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-[30px]">
-              {group.records.map((r) => (
-                <article
-                  key={r.id}
-                  className="bg-white border border-[#e0e6ef] rounded-xl p-[24px] shadow-sm"
-                >
-                  {/* TITLE */}
-                  <h3 className="text-[22px] font-bold text-[#10284a] mb-[6px]">
-                    {r.title}
-                  </h3>
-
-                  {/* KEYWORDS */}
-                  <p className="italic text-[15px] text-gray-600 mb-[12px]">
-                    {r.keywords}
-                  </p>
-
-                  {/* DESCRIPTION */}
-                  <p className="text-[16px] text-[#0b1320] leading-[26px] mb-[14px]">
-                    {r.description}
-                  </p>
-
-                  {/* INTENT PILL */}
-                  <span
-                    className="inline-block px-[12px] py-[4px] text-white text-[14px] rounded-full mb-[14px]"
-                    style={{ backgroundColor: group.color }}
-                  >
-                    {group.intent}
-                  </span>
-
-                  {/* PUBLISH BUTTON */}
-                  <button
-                    className="w-full bg-[#f8fafc] border border-[#d9e1ef] rounded-md py-[10px] text-[16px] text-[#0b1320] hover:bg-[#e8eef8] transition"
-                  >
-                    Publish
-                  </button>
-
-                  {/* STATUS */}
-                  <p className="text-[14px] text-gray-700 mt-[14px]">
-                    Status: {r.status}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </section>
-        );
-      })}
+    <div>
+      <pre>{JSON.stringify(grouped, null, 2)}</pre>
     </div>
   );
 }
