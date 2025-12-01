@@ -17,25 +17,31 @@ export default function TopicalMapPage() {
   const [data, setData] = useState<HubData[]>([]);
   const [businessName, setBusinessName] = useState("");
 
-  useEffect(() => {
-    fetch("/api/get-hubs")
-      .then((res) => res.json())
-      .then((items) => {
-        // Map correct DynamoDB fields
-        const hubs: HubData[] = items.map((item: any) => ({
-          id: item.id,
-          title: item.title,
-          hub: item.hub,
-          businessName: item.businessName,
-        }));
+ useEffect(() => {
+  // Load Hubs from Dynamo
+  fetch("/api/get-hubs")
+    .then((res) => res.json())
+    .then((items) => {
+      if (!Array.isArray(items)) return;
 
-        setData(hubs);
+      const hubs: HubData[] = items.map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        hub: item.hub,
+      }));
 
-        // Pick businessName from first hub record
-        setBusinessName(hubs[0]?.businessName ?? "");
-      })
-      .catch((err) => console.error("Dynamo get-hubs error:", err));
-  }, []);
+      setData(hubs);
+    })
+    .catch((err) => console.error("get-hubs error:", err));
+
+  // Load business name from Airtable
+  fetch("/api/get-business-name")
+    .then((res) => res.json())
+    .then((json) => {
+      setBusinessName(json.businessName || "");
+    })
+    .catch((err) => console.error("get-business-name error:", err));
+}, []);
 
   return (
     <div className="w-full min-h-screen flex justify-center items-center p-[40px]">
