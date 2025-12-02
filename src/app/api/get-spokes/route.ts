@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-function getSubFromCookie(req: Request) {
+/** Extract Cognito sub from the session cookie */
+function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
     .split(";")
@@ -13,14 +14,18 @@ function getSubFromCookie(req: Request) {
 
   if (!token) return null;
 
-  const decoded: any = decodeJwt(token);
-  return decoded.sub || null;
+  try {
+    const decoded: any = decodeJwt(token);
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: Request) {
   const { hubNumber } = await req.json();
 
-  if (hubNumber === undefined || hubNumber === null) {
+  if (!hubNumber) {
     return NextResponse.json({ error: "Missing hubNumber" }, { status: 400 });
   }
 
@@ -34,7 +39,7 @@ export async function POST(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE, // gensen_content
+    TableName: process.env.DYNAMO_TABLE,
     KeyConditionExpression: "ClientID = :c",
     FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
     ExpressionAttributeValues: {
@@ -46,15 +51,38 @@ export async function POST(req: Request) {
 
   const result = await client.send(cmd);
 
+  // ---- FIXED MAPPER (uppercase/lowercase support + normalization) ----
   const records =
-    result.Items?.map((item) => ({
-      id: item.SortKey?.S ?? "",
-      title: item.Title?.S ?? "",
-      keywords: item.SearchIntent?.S ?? "",
-      description: item.WhyItMatters?.S ?? "",
-      intent: item.Category?.S ?? "",
-      status: item.Status?.S ?? "draft",
-    })) ?? [];
+    result.Items?.map((item: any) => {
+      const rawCategory =
+        item.Category?.S ??
+        item.category?.S ??
+        "informational";
+
+      const intent =
+        rawCategory.toLowerCase() === "informational"
+          ? "Informational"
+          : rawCategory.toLowerCase() === "transactional"
+          ? "Transactional"
+          : "Edge";
+
+      return {
+        id: item.SortKey?.S ?? "",
+        title: item.Title?.S ?? item.ShortTitle?.S ?? "",
+        keywords: item.SearchIntent?.S ?? "",
+        description: item.WhyItMatters?.S ?? "",
+        intent,
+        status: item.Status?.S ?? "draft",
+
+        // extra data for UI (safe mapping)
+        bos: item.BOS?.N ?? item.bos?.N ?? null,
+        kd: item.KD?.N ?? item.kd?.N ?? null,
+        priority: item.Priority?.N ?? item.priority?.N ?? null,
+        localAngle: item.LocalAngle?.S ?? item.local_angle?.S ?? "",
+        spokeNumber: item.SpokeNumber?.N ?? null,
+        seoValue: item.SEOValue?.S ?? "",
+      };
+    }) ?? [];
 
   return NextResponse.json(records);
 }
