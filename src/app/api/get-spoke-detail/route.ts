@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       KeyConditionExpression:
         "ClientID = :c AND SortKey = :sk",
       ExpressionAttributeValues: {
-        ":c": { S: `sub#${sub}` },
+        ":c": { S: sub },
         ":sk": { S: sortKey },
       },
     });
