@@ -108,7 +108,7 @@ export default function HubSpokeChart({
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() => router.push(`/spoke/${hubNumber}`)}
+                  onClick={() => router.push(`/dashboard/hub/${hubNumber}`)}
                 />
               );
             })}
