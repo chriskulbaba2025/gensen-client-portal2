@@ -22,11 +22,11 @@ export default function HubSpokeChart({
   const router = useRouter();
 
   // *** FIX: map Dynamo Title -> title ***
-  const normalized = data.map((item) => ({
-    id: item.id,
-    title: item.Title ?? item.title ?? "",
-    hub: item.HubNumber ?? item.hub ?? null,
-  }));
+ const normalized = data.map((item) => ({
+  id: item.id,
+  title: item.title,   // API guarantees this
+  hub: item.hub ?? null,
+}));
 
   const width = 850;
   const height = 850;

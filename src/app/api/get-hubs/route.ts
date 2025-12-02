@@ -49,7 +49,7 @@ export async function GET(req: Request) {
 
   const hubs = onlyHubs.map((item: any) => ({
     id: item.SortKey.S,
-    title: item.title?.S ?? "",
+    title: item.Title?.S ?? item.ShortTitle?.S ?? "",
     hub: Number(item.HubNumber.N),
     businessName: item.businessName?.S ?? "",
   }));
