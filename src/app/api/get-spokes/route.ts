@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     KeyConditionExpression: "ClientID = :c",
     FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
     ExpressionAttributeValues: {
-      ":c": { S: `sub#${sub}` },
+      ":c": { S: sub },
       ":hub": { N: `${hubNumber}` },
       ":zero": { N: "0" },
     },
