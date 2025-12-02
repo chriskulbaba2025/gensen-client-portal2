@@ -8,18 +8,25 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface HubSpokeItem {
   id: string;
-  title: string;
-  hub?: number; // allow Dynamo to omit, we can fallback
+  title: string;          // <-- we REQUIRE lowercase title
+  hub?: number;
 }
 
 export default function HubSpokeChart({
   data,
   businessName,
 }: {
-  data: HubSpokeItem[];
+  data: any[];
   businessName: string;
 }) {
   const router = useRouter();
+
+  // *** FIX: map Dynamo Title -> title ***
+  const normalized = data.map((item) => ({
+    id: item.id,
+    title: item.Title ?? item.title ?? "",
+    hub: item.HubNumber ?? item.hub ?? null,
+  }));
 
   const width = 850;
   const height = 850;
@@ -28,7 +35,7 @@ export default function HubSpokeChart({
   const colorDefault = ["#0aa2fb", "#6ca439", "#f66630"];
 
   const pieGen = d3.pie().value(() => 1).sort(null);
-  const arcs = pieGen(data);
+  const arcs = pieGen(normalized);
 
   const arcGen = d3.arc().innerRadius(100).outerRadius(radius);
 
@@ -39,8 +46,7 @@ export default function HubSpokeChart({
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
 
-  // Robust hub number from Dynamo-style id if needed
-  const getHubNumber = (item: HubSpokeItem, index: number) => {
+  const getHubNumber = (item: any, index: number) => {
     if (typeof item.hub === "number" && !Number.isNaN(item.hub)) {
       return item.hub;
     }
@@ -67,7 +73,6 @@ export default function HubSpokeChart({
             : "GENSEN – Topical Content Map"}
         </h2>
 
-        {/* SVG WHEEL */}
         <svg width={width} height={height} style={{ overflow: "visible" }}>
           <defs>
             <radialGradient id="bgGradient" cx="50%" cy="50%" r="80%">
@@ -79,10 +84,10 @@ export default function HubSpokeChart({
           <rect width={width} height={height} fill="url(#bgGradient)" rx={24} />
 
           <g transform={`translate(${width / 2}, ${height / 2})`}>
-            {/* WEDGES */}
             {arcs.map((d: any, i: number) => {
               const color = colorDefault[i % colorDefault.length];
-              const hubNumber = getHubNumber(data[i], i);
+              const hubNumber = getHubNumber(normalized[i], i);
+
               return (
                 <path
                   key={`arc-${i}`}
@@ -108,7 +113,6 @@ export default function HubSpokeChart({
               );
             })}
 
-            {/* LABELS */}
             <AnimatePresence>
               {arcs.map((d: any, i: number) => {
                 const color = colorDefault[i % colorDefault.length];
@@ -124,11 +128,11 @@ export default function HubSpokeChart({
                 const lineX = Math.cos(angle - Math.PI / 2) * lineRadius;
                 const lineY = Math.sin(angle - Math.PI / 2) * lineRadius;
 
-                const label = data[i].title;
+                const label = normalized[i].title;
                 const textWidth = Math.min(label.length * 8 + 40, 260);
 
                 const isLeft = x < 0;
-                const hubNumber = getHubNumber(data[i], i);
+                const hubNumber = getHubNumber(normalized[i], i);
 
                 return (
                   <motion.g
@@ -145,7 +149,6 @@ export default function HubSpokeChart({
                       ease: "easeOut",
                     }}
                   >
-                    {/* Connector line */}
                     <line
                       x1={lineX}
                       y1={lineY}
@@ -155,7 +158,6 @@ export default function HubSpokeChart({
                       strokeWidth={1.5}
                     />
 
-                    {/* Label background + text using foreignObject */}
                     <foreignObject
                       x={x + (isLeft ? -textWidth : 0)}
                       y={y - 20}
@@ -200,7 +202,6 @@ export default function HubSpokeChart({
               })}
             </AnimatePresence>
 
-            {/* CENTER CIRCLE */}
             <circle r={95} fill="white" stroke="#67b7ff" strokeWidth={2} />
             <text
               textAnchor="middle"
@@ -214,25 +215,14 @@ export default function HubSpokeChart({
           </g>
         </svg>
 
-        {/* LEGEND */}
+        {/* --- FIXED BLOCK WITH FULL SENTENCES RESTORED --- */}
         <div className="mt-[40px] bg-[#e9eef6] text-[#0b1320] rounded-lg p-8">
-          {/* Short explainer block */}
           <div className="text-[15px] leading-[24px] text-left max-w-[700px] mx-auto mb-6">
-            <p>
-              Each hub is colour-coded by funnel stage so you can see how topics
-              work together across your customer journey.
-            </p>
-            <p>
-              Blue builds awareness, green supports evaluation, and orange drives
-              action.
-            </p>
-            <p>
-              This gives you a quick way to balance reach, education, and
-              conversion instead of publishing at random.
-            </p>
+            <p>Each hub is colour-coded by funnel stage so you can see how topics work together across your customer journey.</p>
+            <p>Blue builds awareness, green supports evaluation, and orange drives action.</p>
+            <p>This gives you a quick way to balance reach, education, and conversion instead of publishing at random.</p>
           </div>
 
-          {/* Funnel legend with icons */}
           <div className="text-[16px] leading-[26px] text-left max-w-[700px] mx-auto">
             <div className="flex items-center mb-[16px]">
               <span className="w-[18px] h-[18px] rounded-full mr-[12px] bg-[#0aa2fb] border border-[#0b1320]" />
