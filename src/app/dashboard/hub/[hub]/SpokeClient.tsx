@@ -262,10 +262,8 @@ export default function SpokeClient({ hubId }: { hubId: string }) {
                       record={record}
                       color={stage.color}
                       onClick={() =>
-                        router.push(
-                          `/dashboard/spoke/${record.hubNumber}/${record.spokeNumber}`
-                        )
-                      }
+  router.push(`/dashboard/spoke/${record.hubNumber}-${record.spokeNumber}`)
+}
                     />
                   ))}
                 </div>
