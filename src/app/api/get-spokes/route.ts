@@ -51,7 +51,9 @@ export async function POST(req: Request) {
 
   const result = await client.send(cmd);
 
-  // ---- FIXED MAPPER (uppercase/lowercase support + normalization) ----
+  // -------------------------------
+  // Final Fixed Mapper
+  // -------------------------------
   const records =
     result.Items?.map((item: any) => {
       const rawCategory =
@@ -68,18 +70,24 @@ export async function POST(req: Request) {
 
       return {
         id: item.SortKey?.S ?? "",
+
         title: item.Title?.S ?? item.ShortTitle?.S ?? "",
+
         keywords: item.SearchIntent?.S ?? "",
         description: item.WhyItMatters?.S ?? "",
         intent,
         status: item.Status?.S ?? "draft",
 
-        // extra data for UI (safe mapping)
-        bos: item.BOS?.N ?? item.bos?.N ?? null,
-        kd: item.KD?.N ?? item.kd?.N ?? null,
-        priority: item.Priority?.N ?? item.priority?.N ?? null,
-        localAngle: item.LocalAngle?.S ?? item.local_angle?.S ?? "",
-        spokeNumber: item.SpokeNumber?.N ?? null,
+        bos: item.BOS?.N ? Number(item.BOS.N) : null,
+        kd: item.KD?.N ? Number(item.KD.N) : null,
+        priority: item.Priority?.N ? Number(item.Priority.N) : null,
+
+        localAngle: item.LocalAngle?.S ?? "",
+
+        // *** THE FIX: force numbers ***
+        hubNumber: item.HubNumber?.N ? Number(item.HubNumber.N) : null,
+        spokeNumber: item.SpokeNumber?.N ? Number(item.SpokeNumber.N) : null,
+
         seoValue: item.SEOValue?.S ?? "",
       };
     }) ?? [];
