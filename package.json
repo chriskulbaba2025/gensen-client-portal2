@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.922.0",
-    "@aws-sdk/client-dynamodb": "^3.940.0",
+    "@aws-sdk/client-dynamodb": "^3.943.0",
     "@aws-sdk/client-s3": "^3.939.0",
     "@aws-sdk/s3-request-presigner": "^3.939.0",
     "@aws-sdk/util-dynamodb": "^3.940.0",
@@ -19,6 +19,7 @@
     "axios": "^1.13.2",
     "clsx": "^2.1.1",
     "d3-shape": "^3.2.0",
+    "dotenv": "^17.2.3",
     "framer-motion": "^12.23.9",
     "jose": "^6.1.0",
     "lucide-react": "^0.525.0",

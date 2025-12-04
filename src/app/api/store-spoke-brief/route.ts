@@ -78,8 +78,9 @@ export async function POST(req: Request) {
 
   //
   // 3. Generate SortKey
+  // MUST be consistent with get-spoke-brief route
   //
-  const hubStr = String(brief.hubNumber).padStart(2, "0");
+  const hubStr = String(brief.hubNumber).padStart(3, "0");
   const spokeStr = String(brief.spokeNumber).padStart(3, "0");
   const timestamp = Date.now();
 
@@ -96,7 +97,8 @@ export async function POST(req: Request) {
       ClientID: { S: `sub#${sub}` },
       SortKey: { S: sortKey },
       CreatedAt: { N: String(timestamp) },
-      BriefData: toAttr(brief), // full structured brief stored here
+      UpdatedAt: { N: String(timestamp) },
+      BriefData: toAttr(brief),
     },
   });
 

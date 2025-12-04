@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-/** Extract Cognito sub from the session cookie */
+/** Extract Cognito sub from cookie */
 function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
@@ -54,11 +54,11 @@ export async function GET(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE,
+    TableName: process.env.DYNAMO_TABLE_NAME,          // FIXED
     KeyConditionExpression: "ClientID = :c",
     FilterExpression: "HubNumber = :hub AND SpokeNumber = :spoke",
     ExpressionAttributeValues: {
-      ":c": { S: sub },
+      ":c": { S: `sub#${sub}` },                       // FIXED PK FORMAT
       ":hub": { N: String(hubNumber) },
       ":spoke": { N: String(spokeNumber) },
     },
@@ -94,11 +94,9 @@ export async function GET(req: Request) {
     keywords: item.SearchIntent?.S ?? "",
     intent,
     status: item.Status?.S ?? "draft",
-
     bos: item.BOS?.N ? Number(item.BOS.N) : null,
     kd: item.KD?.N ? Number(item.KD.N) : null,
     priority: item.Priority?.N ? Number(item.Priority.N) : null,
-
     localAngle: item.LocalAngle?.S ?? "",
     hubNumber,
     spokeNumber,

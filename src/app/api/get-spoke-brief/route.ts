@@ -11,7 +11,7 @@ import { decodeJwt } from "jose";
 const TABLE_NAME = process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain";
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
-/** Get Cognito sub from cookie */
+/** Extract Cognito sub from cookie */
 function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
@@ -29,24 +29,47 @@ function getSubFromCookie(req: Request): string | null {
   }
 }
 
+/** Safe conversion for ANY DynamoDB AttributeValue */
+function convertDynamo(val: AttributeValue): any {
+  if (!val) return null;
+
+  if ("S" in val && val.S !== undefined) return val.S;
+  if ("N" in val && val.N !== undefined) return Number(val.N);
+
+  if ("BOOL" in val && val.BOOL !== undefined) return val.BOOL;
+
+  if ("NULL" in val && val.NULL !== undefined) return null;
+
+  if ("L" in val && Array.isArray(val.L)) {
+    return val.L.map((item) => convertDynamo(item));
+  }
+
+  if ("M" in val && val.M) {
+    const out: any = {};
+    for (const [childKey, childVal] of Object.entries(val.M)) {
+      out[childKey] = convertDynamo(childVal as AttributeValue);
+    }
+    return out;
+  }
+
+  return null;
+}
+
 export async function GET(req: Request) {
   //
   // 1. Validate user
   //
   const sub = getSubFromCookie(req);
   if (!sub) {
-    return NextResponse.json(
-      { error: "Unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   //
   // 2. Parse query params
   //
   const { searchParams } = new URL(req.url);
-  const hub = searchParams.get("hub"); // "01"
-  const spoke = searchParams.get("spoke"); // "003"
+  const hub = searchParams.get("hub");   // must be padded: "001"
+  const spoke = searchParams.get("spoke"); // must be padded: "003"
 
   if (!hub || !spoke) {
     return NextResponse.json(
@@ -58,7 +81,7 @@ export async function GET(req: Request) {
   const prefix = `BRIEF#${hub}#${spoke}`;
 
   //
-  // 3. Dynamo query for ALL briefs for this spoke
+  // 3. Query Dynamo
   //
   const client = new DynamoDBClient({ region: REGION });
 
@@ -81,49 +104,13 @@ export async function GET(req: Request) {
     }
 
     //
-    // 4. Convert DynamoDB → plain JSON
+    // 4. Convert Dynamo item → fully normalized JSON
     //
     const item = res.Items[0];
     const out: any = {};
 
     for (const [key, val] of Object.entries(item)) {
-      const v = val as AttributeValue;
-
-      if ("S" in v && v.S !== undefined) {
-        out[key] = v.S;
-      } else if ("N" in v && v.N !== undefined) {
-        out[key] = Number(v.N);
-      } else if ("L" in v && v.L !== undefined) {
-        // array
-        out[key] = v.L.map((x) =>
-          "S" in x && x.S !== undefined
-            ? x.S
-            : "N" in x && x.N !== undefined
-            ? Number(x.N)
-            : x
-        );
-      } else if ("M" in v && v.M !== undefined) {
-        // map / object
-        const child: any = {};
-        for (const [ck, cv] of Object.entries(v.M ?? {})) {
-          const c = cv as AttributeValue;
-
-          if ("S" in c && c.S !== undefined) {
-            child[ck] = c.S;
-          } else if ("N" in c && c.N !== undefined) {
-            child[ck] = Number(c.N);
-          } else if ("L" in c && c.L !== undefined) {
-            child[ck] = c.L.map((x) =>
-              "S" in x && x.S !== undefined
-                ? x.S
-                : "N" in x && x.N !== undefined
-                ? Number(x.N)
-                : x
-            );
-          }
-        }
-        out[key] = child;
-      }
+      out[key] = convertDynamo(val as AttributeValue);
     }
 
     return NextResponse.json({ brief: out });

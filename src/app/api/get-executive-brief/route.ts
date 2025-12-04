@@ -38,20 +38,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // ---- 1. Fetch the spoke from Dynamo ----
+    //
+    // ----------------------------------------------------
+    // 1. FETCH SPOKE FROM DYNAMO
+    // ----------------------------------------------------
+    //
     const client = new DynamoDBClient({
       region: process.env.AWS_REGION ?? "us-east-1",
     });
 
     const cmd = new QueryCommand({
-      TableName: process.env.DYNAMO_TABLE,
+      TableName: process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain",
       KeyConditionExpression: "ClientID = :c",
-      FilterExpression:
-        "HubNumber = :h AND SpokeNumber = :s",
+      FilterExpression: "HubNumber = :h AND SpokeNumber = :s",
       ExpressionAttributeValues: {
-        ":c": { S: sub },
-        ":h": { N: `${hubNumber}` },
-        ":s": { N: `${spokeNumber}` },
+        ":c": { S: `sub#${sub}` },          // FIXED PARTITION KEY
+        ":h": { N: String(hubNumber) },
+        ":s": { N: String(spokeNumber) },
       },
     });
 
@@ -66,22 +69,36 @@ export async function POST(req: Request) {
 
     const item = result.Items[0];
 
-    // Normalize Dynamo fields
+    //
+    // ----------------------------------------------------
+    // 2. NORMALIZE DYNAMO → PLAIN JSON
+    // ----------------------------------------------------
+    //
     const spokeData = {
       title: item.Title?.S ?? "",
       description: item.Description?.S ?? "",
       whyItMatters: item.WhyItMatters?.S ?? "",
       intent: item.Category?.S ?? "",
-      bos: item.BOS?.N ?? null,
-      kd: item.KD?.N ?? null,
-      priority: item.Priority?.N ?? null,
+      bos: item.BOS?.N ? Number(item.BOS.N) : null,
+      kd: item.KD?.N ? Number(item.KD.N) : null,
+      priority: item.Priority?.N ? Number(item.Priority.N) : null,
       searchIntent: item.SearchIntent?.S ?? "",
       localAngle: item.LocalAngle?.S ?? "",
-      hubNumber: item.HubNumber?.N ? Number(item.HubNumber.N) : null,
-      spokeNumber: item.SpokeNumber?.N ? Number(item.SpokeNumber.N) : null,
+      hubNumber: item.HubNumber?.N ? Number(item.HubNumber.N) : Number(hubNumber),
+      spokeNumber: item.SpokeNumber?.N ? Number(item.SpokeNumber.N) : Number(spokeNumber),
+      brandVoice:
+        "GENSEN voice: confident, grounded, precise, human, editorial, no hype, no fluff.",
     };
 
-    // ---- 2. Call the n8n Executive Brief webhook ----
+    //
+    // ----------------------------------------------------
+    // 3. CALL N8N EXECUTIVE BRIEF WEBHOOK
+    // ----------------------------------------------------
+    //
+    // n8n expects:  [ { ...payload } ]
+    //
+    const payload = [spokeData];
+
     const webhookUrl =
       "https://primary-production-77e7.up.railway.app/webhook/spoke-brief";
 
@@ -90,7 +107,7 @@ export async function POST(req: Request) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(spokeData),
+      body: JSON.stringify(payload),
     });
 
     if (!n8nRes.ok) {
@@ -103,9 +120,15 @@ export async function POST(req: Request) {
       );
     }
 
+    //
+    // ----------------------------------------------------
+    // 4. RETURN EXECUTIVE BRIEF
+    // ----------------------------------------------------
+    //
     const brief = await n8nRes.json();
+    const formatted = Array.isArray(brief) ? brief[0] : brief;
 
-    return NextResponse.json(brief);
+    return NextResponse.json(formatted);
   } catch (err: any) {
     return NextResponse.json(
       { error: "Internal Server Error", details: err.message },

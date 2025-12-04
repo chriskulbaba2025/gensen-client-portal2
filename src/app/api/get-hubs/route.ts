@@ -36,21 +36,25 @@ export async function GET(req: Request) {
     KeyConditionExpression:
       "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
-      ":c": { S: `sub#${sub}` },   // FIXED PARTITION KEY
+      ":c": { S: `sub#${sub}` },   // REQUIRED format
       ":prefix": { S: "HUB#" },
     },
   });
 
   const result = await client.send(cmd);
 
+  // Correct hub detection: HUB# + 3 digits ONLY
   const onlyHubs =
-    result.Items?.filter((item: any) => item.SortKey?.S.length === 7) ?? [];
+    result.Items?.filter((item: any) => {
+      const sk = item.SortKey?.S ?? "";
+      return /^HUB#[0-9]{3}$/.test(sk);
+    }) ?? [];
 
   const hubs = onlyHubs.map((item: any) => ({
     id: item.SortKey.S,
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
-    hub: Number(item.HubNumber?.N ?? 0),
-    businessName: item.businessName?.S ?? "",
+    hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+    businessName: item.BusinessName?.S ?? "",  // FIXED attribute name
   }));
 
   return NextResponse.json(hubs);

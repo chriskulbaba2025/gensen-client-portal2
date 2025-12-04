@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-/** Extract Cognito sub from the session cookie */
+/** Extract Cognito sub from cookie */
 function getSubFromCookie(req: Request): string | null {
   const cookie = req.headers.get("cookie") || "";
   const token = cookie
@@ -39,11 +39,11 @@ export async function POST(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE,
+    TableName: process.env.DYNAMO_TABLE_NAME,   // FIXED
     KeyConditionExpression: "ClientID = :c",
     FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
     ExpressionAttributeValues: {
-      ":c": { S: sub },
+      ":c": { S: `sub#${sub}` },                // FIXED PK FORMAT
       ":hub": { N: `${hubNumber}` },
       ":zero": { N: "0" },
     },
@@ -51,9 +51,6 @@ export async function POST(req: Request) {
 
   const result = await client.send(cmd);
 
-  // -------------------------------
-  // Final Fixed Mapper
-  // -------------------------------
   const records =
     result.Items?.map((item: any) => {
       const rawCategory =
@@ -70,24 +67,17 @@ export async function POST(req: Request) {
 
       return {
         id: item.SortKey?.S ?? "",
-
         title: item.Title?.S ?? item.ShortTitle?.S ?? "",
-
         keywords: item.SearchIntent?.S ?? "",
         description: item.WhyItMatters?.S ?? "",
         intent,
         status: item.Status?.S ?? "draft",
-
         bos: item.BOS?.N ? Number(item.BOS.N) : null,
         kd: item.KD?.N ? Number(item.KD.N) : null,
         priority: item.Priority?.N ? Number(item.Priority.N) : null,
-
         localAngle: item.LocalAngle?.S ?? "",
-
-        // *** THE FIX: force numbers ***
         hubNumber: item.HubNumber?.N ? Number(item.HubNumber.N) : null,
         spokeNumber: item.SpokeNumber?.N ? Number(item.SpokeNumber.N) : null,
-
         seoValue: item.SEOValue?.S ?? "",
       };
     }) ?? [];

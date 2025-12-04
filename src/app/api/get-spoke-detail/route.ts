@@ -26,7 +26,6 @@ export async function POST(req: Request) {
   try {
     const { hubNumber, spokeNumber } = await req.json();
 
-    // Validate input
     if (!hubNumber || !spokeNumber) {
       return NextResponse.json(
         { error: "Missing hubNumber or spokeNumber" },
@@ -43,17 +42,17 @@ export async function POST(req: Request) {
       region: process.env.AWS_REGION ?? "us-east-1",
     });
 
-    // Build correct SortKey prefix
+    // Ensure format: HUB#001#SPOKE#003
     const hubStr = String(hubNumber).padStart(3, "0");
     const spokeStr = String(spokeNumber).padStart(3, "0");
     const sortKey = `HUB#${hubStr}#SPOKE#${spokeStr}`;
 
     const cmd = new QueryCommand({
-      TableName: process.env.DYNAMO_TABLE,
+      TableName: process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain",
       KeyConditionExpression:
         "ClientID = :c AND SortKey = :sk",
       ExpressionAttributeValues: {
-        ":c": { S: sub },
+        ":c": { S: `sub#${sub}` },     // FIXED partition key
         ":sk": { S: sortKey },
       },
     });
@@ -68,7 +67,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Normalize response
+    // Normalize result safely
     const record = {
       id: item.SortKey?.S ?? "",
       title: item.Title?.S ?? item.ShortTitle?.S ?? "",
@@ -76,9 +75,15 @@ export async function POST(req: Request) {
       intent: item.Category?.S ?? "Informational",
       hubNumber: Number(item.HubNumber?.N ?? hubNumber),
       spokeNumber: Number(item.SpokeNumber?.N ?? spokeNumber),
+      keywords: item.SearchIntent?.S ?? "",
+      localAngle: item.LocalAngle?.S ?? "",
+      bos: item.BOS?.N ? Number(item.BOS.N) : null,
+      kd: item.KD?.N ? Number(item.KD.N) : null,
+      priority: item.Priority?.N ? Number(item.Priority.N) : null,
     };
 
     return NextResponse.json(record);
+
   } catch (err) {
     console.error("get-spoke-detail error", err);
     return NextResponse.json(
