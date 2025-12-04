@@ -32,25 +32,24 @@ export async function GET(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE,
+    TableName: process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain",
     KeyConditionExpression:
       "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
-      ":c": { S: sub },
+      ":c": { S: `sub#${sub}` },   // FIXED PARTITION KEY
       ":prefix": { S: "HUB#" },
     },
   });
 
   const result = await client.send(cmd);
 
-  // STRICT FILTER – only return items like "HUB#001"
   const onlyHubs =
     result.Items?.filter((item: any) => item.SortKey?.S.length === 7) ?? [];
 
   const hubs = onlyHubs.map((item: any) => ({
     id: item.SortKey.S,
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
-    hub: Number(item.HubNumber.N),
+    hub: Number(item.HubNumber?.N ?? 0),
     businessName: item.businessName?.S ?? "",
   }));
 
