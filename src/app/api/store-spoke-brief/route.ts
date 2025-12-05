@@ -7,7 +7,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-const TABLE_NAME = process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain";
+
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
 /** Extract Cognito sub */
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
   const client = new DynamoDBClient({ region: REGION });
 
   const cmd = new PutItemCommand({
-    TableName: TABLE_NAME,
+    TableName: process.env.DYNAMO_TABLE_NAME,
     Item: {
       ClientID: { S: `sub#${sub}` },
       SortKey: { S: sortKey },

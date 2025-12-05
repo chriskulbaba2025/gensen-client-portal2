@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-const TABLE_NAME = process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain";
+
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
 /** Extract Cognito sub from cookie */
@@ -86,7 +86,7 @@ export async function GET(req: Request) {
   const client = new DynamoDBClient({ region: REGION });
 
   const cmd = new QueryCommand({
-    TableName: TABLE_NAME,
+    TableName: process.env.DYNAMO_TABLE_NAME,
     KeyConditionExpression:
       "ClientID = :pk AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {

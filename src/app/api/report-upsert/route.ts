@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID!;
 const AIRTABLE_API_KEY = process.env.AIRTABLE_TOKEN!;
-const TABLE_NAME = 'Responses';
+
+const TABLE_NAME = "Responses"; // Airtable table
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,8 +21,10 @@ export async function POST(req: NextRequest) {
     const findRes = await fetch(findUrl, {
       headers: { Authorization: `Bearer ${AIRTABLE_API_KEY}` },
     });
+
     const findData = await findRes.json();
     const recordId = findData.records?.[0]?.id;
+
     if (!recordId)
       return NextResponse.json({ error: 'Record not found' }, { status: 404 });
 

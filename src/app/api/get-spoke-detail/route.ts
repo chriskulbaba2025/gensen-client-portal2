@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     const sortKey = `HUB#${hubStr}#SPOKE#${spokeStr}`;
 
     const cmd = new QueryCommand({
-      TableName: process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain",
+      TableName: process.env.DYNAMO_TABLE_NAME,
       KeyConditionExpression:
         "ClientID = :c AND SortKey = :sk",
       ExpressionAttributeValues: {

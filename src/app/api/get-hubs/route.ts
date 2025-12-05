@@ -32,7 +32,7 @@ export async function GET(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE_NAME ?? "GensenClientsMain",
+    TableName: process.env.DYNAMO_TABLE_NAME,
     KeyConditionExpression:
       "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
