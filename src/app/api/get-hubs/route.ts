@@ -41,7 +41,17 @@ export async function GET(req: Request) {
     },
   });
 
-  const result = await client.send(cmd);
+  let result;
+try {
+  result = await client.send(cmd);
+} catch (err) {
+  console.error("Dynamo get-hubs error:", err);
+  return NextResponse.json(
+    { error: "dynamo_failed", details: String(err) },
+    { status: 500 }
+  );
+}
+
 
   // Correct hub detection: HUB# + 3 digits ONLY
   const onlyHubs =
