@@ -1,88 +1,53 @@
-// src/app/api/get-brand-data/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { decodeJwt } from "jose";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const dynamo = new DynamoDBClient({ region: process.env.AWS_REGION });
+const TABLE = process.env.DYNAMO_TABLE_NAME!;
 
-export async function POST(req: Request) {
+function getSub(req: NextRequest): string | null {
+  const token = req.cookies.get("gensen_session")?.value;
+  if (!token) return null;
+
   try {
-    //
-    // 1. Parse and validate email
-    //
-    const { email } = await req.json();
+    const decoded: any = decodeJwt(token);
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+}
 
-    if (!email || typeof email !== "string") {
-      return NextResponse.json(
-        { error: "Missing or invalid email" },
-        { status: 400 }
-      );
-    }
+export async function GET(req: NextRequest) {
+  try {
+    // 1) Extract Cognito sub
+    const sub = getSub(req);
+    if (!sub) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-    const cleanEmail = email.trim().toLowerCase().replace(/\s+/g, "");
-
-    //
-    // 2. Validate env variables
-    //
-    const baseId = process.env.AIRTABLE_BASE_ID;
-    const tableId = process.env.AIRTABLE_TABLE_ID;
-    const token = process.env.AIRTABLE_TOKEN;
-
-    if (!baseId || !tableId || !token) {
-      return NextResponse.json(
-        { error: "Missing Airtable environment variables" },
-        { status: 500 }
-      );
-    }
-
-    //
-    // 3. Build correct Airtable formula
-    //
-    const formula = encodeURIComponent(
-      `LOWER(TRIM({Email})) = "${cleanEmail}"`
+    // 2) Load PROFILE record from Dynamo
+    const profile = await dynamo.send(
+      new GetItemCommand({
+        TableName: TABLE,
+        Key: {
+          ClientID: { S: `sub#${sub}` },
+          SortKey: { S: "PROFILE" },
+        },
+      })
     );
 
-    const url = `https://api.airtable.com/v0/${baseId}/${tableId}?filterByFormula=${formula}`;
-
-    //
-    // 4. Fetch Airtable
-    //
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-
-    const json = await res.json();
-
-    //
-    // 5. Handle no record found
-    //
-    if (!json.records || json.records.length === 0) {
-      return NextResponse.json({ found: false });
+    if (!profile.Item) {
+      return NextResponse.json({ businessName: "" });
     }
 
-    const f = json.records[0].fields;
+    // 3) Extract business name (and brand URL if needed)
+    const businessName = profile.Item.BusinessName?.S ?? "";
+    const businessURL = profile.Item.BusinessURL?.S ?? "";
 
-    //
-    // 6. Return normalized brand data
-    //
     return NextResponse.json({
-      found: true,
-      audience: f.Audience ?? "",
-      icp: f.ICP ?? "",
-      brandStatement: f["Brand Statement"] ?? "",
-
-      // Extra brand fields (future-proof)
-      tone: f.Tone ?? "",
-      keywords: f.Keywords ?? "",
-      painPoints: f.PainPoints ?? "",
-      valueProps: f.ValueProps ?? "",
-      messaging: f.Messaging ?? "",
+      businessName,
+      businessURL,
     });
   } catch (err) {
-    console.error("❌ Airtable fetch failed:", err);
-    return NextResponse.json(
-      { error: "Server error", details: String(err) },
-      { status: 500 }
-    );
+    console.error("get-business-name Dynamo error:", err);
+    return NextResponse.json({ error: "failed" }, { status: 500 });
   }
 }

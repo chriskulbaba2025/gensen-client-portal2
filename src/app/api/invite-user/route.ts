@@ -1,39 +1,44 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 import {
   CognitoIdentityProviderClient,
   AdminCreateUserCommand,
-} from '@aws-sdk/client-cognito-identity-provider';
+} from "@aws-sdk/client-cognito-identity-provider";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
-const client = new CognitoIdentityProviderClient({
+const cognito = new CognitoIdentityProviderClient({
   region: process.env.COGNITO_REGION,
 });
 
-// Airtable
-const AIRTABLE_BASE = process.env.AIRTABLE_BASE_ID!;
-const AIRTABLE_TABLE = process.env.AIRTABLE_TABLE_ID!;
-const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN!;
+const dynamo = new DynamoDBClient({
+  region: process.env.AWS_REGION,
+});
+
+const TABLE = process.env.DYNAMO_TABLE_NAME!;
 
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
 
     if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    // 1. CREATE USER IN COGNITO WITH CUSTOM TEMP PASSWORD (NO EMAIL SENT)
+    // 1. CREATE USER IN COGNITO (SUPPRESSED EMAIL)
     const createCommand = new AdminCreateUserCommand({
       UserPoolId: process.env.COGNITO_USER_POOL_ID!,
       Username: email,
-      TemporaryPassword: "TempPass@123!",   // ← FIXED TEMP PASSWORD
-      MessageAction: "SUPPRESS",            // ← disables Cognito emails
+      TemporaryPassword: "TempPass@123!",
+      MessageAction: "SUPPRESS",
       UserAttributes: [
-        { Name: 'email', Value: email },
-        { Name: 'email_verified', Value: 'true' },  // allowed to log in
+        { Name: "email", Value: email },
+        { Name: "email_verified", Value: "true" },
       ],
     });
 
-    const result = await client.send(createCommand);
+    const result = await cognito.send(createCommand);
 
     // Extract Cognito sub
     const attributes = result.User?.Attributes || [];
@@ -42,73 +47,53 @@ export async function POST(req: Request) {
 
     if (!cognitoSub) {
       return NextResponse.json(
-        { ok: false, error: "Cognito user created but sub not returned." },
+        { ok: false, error: "User created but Cognito sub missing." },
         { status: 500 }
       );
     }
 
-    // 2. UPSERT INTO AIRTABLE (only section changed)
-    const airtableRes = await fetch(
-      `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-          "Content-Type": "application/json",
+    // 2. WRITE INITIAL PROFILE RECORD TO DYNAMODB
+    await dynamo.send(
+      new PutItemCommand({
+        TableName: TABLE,
+        Item: {
+          ClientID: { S: `sub#${cognitoSub}` },
+          SortKey: { S: "PROFILE" },
+          Email: { S: email },
+          BusinessName: { S: "" },      // placeholder, updated later by user
+          BusinessURL: { S: "" },       // placeholder
+          BrandVoice: { M: {} },        // empty to start
+          Social: { M: {} },
+          CreatedAt: { S: new Date().toISOString() },
+          UpdatedAt: { S: new Date().toISOString() },
         },
-        body: JSON.stringify({
-          performUpsert: {
-            fieldsToMergeOn: ["Email"],
-          },
-          records: [
-            {
-              fields: {
-                Email: email,
-                cognito_sub: cognitoSub,
-              },
-            },
-          ],
-          typecast: true,
-        }),
-      }
+        ConditionExpression: "attribute_not_exists(ClientID)", // prevents overwrite
+      })
     );
 
-    const airtableJson = await airtableRes.json();
-
-    if (!airtableRes.ok) {
-      console.error("Airtable error:", airtableJson);
-      return NextResponse.json(
-        { ok: false, error: "Failed to update Airtable." },
-        { status: 500 }
-      );
-    }
-
-    // 3. RETURN TO FRONTEND
+    // 3. RETURN SUCCESS
     return NextResponse.json({
       ok: true,
-      message: "User created silently with temporary password and saved to Airtable.",
+      message: "User invited and PROFILE created in Dynamo.",
       sub: cognitoSub,
-      airtable: airtableJson,
     });
 
-  } catch (error) {
-    console.error('Error creating user:', error);
+  } catch (error: any) {
+    console.error("invite-user error:", error);
 
-    const errMsg = error instanceof Error ? error.message : 'Unknown error';
-
-    if (errMsg.includes('UsernameExistsException')) {
+    // Cognito user already exists
+    if (String(error).includes("UsernameExistsException")) {
       return NextResponse.json(
         {
           ok: false,
-          error:
-            'A user with this email already exists. Try signing in instead.',
+          error: "A user with this email already exists.",
         },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { ok: false, error: errMsg },
+      { ok: false, error: error?.message ?? "Unknown error" },
       { status: 500 }
     );
   }

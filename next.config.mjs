@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Force Webpack because this project uses a custom webpack() configuration.
+  experimental: {
+    turbo: false,
+  },
+
   images: {
     remotePatterns: [
       {
@@ -17,6 +22,7 @@ const nextConfig = {
       issuer: /\.[jt]sx?$/,
       use: ["@svgr/webpack"],
     });
+
     return config;
   },
 };

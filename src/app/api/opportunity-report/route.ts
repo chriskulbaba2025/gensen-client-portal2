@@ -1,16 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyIdToken } from '@/lib/verifyCognitoJwt';
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { cleanMojibake } from '@/lib/cleanMojibake';
-import { TextDecoder } from 'util';
+import { NextRequest, NextResponse } from "next/server";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { decodeJwt } from "jose";
+import { cleanMojibake } from "@/lib/cleanMojibake";
+import { TextDecoder } from "util";
 
-const s3 = new S3Client({ region: 'us-east-1' });
-const BUCKET = '8144-6256-0475-omni-reports';
+const dynamo = new DynamoDBClient({ region: process.env.AWS_REGION });
+const s3 = new S3Client({ region: "us-east-1" });
+
+const TABLE = process.env.DYNAMO_TABLE_NAME!;
+// Keep your existing bucket for opportunity reports
+const BUCKET = "8144-6256-0475-omni-reports";
 
 // Proper UTF-8 decoding
-async function streamToString(stream: AsyncIterable<Uint8Array>): Promise<string> {
-  const decoder = new TextDecoder('utf-8');
-  let result = '';
+async function streamToString(
+  stream: AsyncIterable<Uint8Array>
+): Promise<string> {
+  const decoder = new TextDecoder("utf-8");
+  let result = "";
 
   for await (const chunk of stream) {
     result += decoder.decode(chunk, { stream: true });
@@ -20,35 +27,48 @@ async function streamToString(stream: AsyncIterable<Uint8Array>): Promise<string
   return result;
 }
 
+function getSub(req: NextRequest): string | null {
+  const token = req.cookies.get("gensen_session")?.value;
+  if (!token) return null;
+
+  try {
+    const decoded: any = decodeJwt(token);
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
-    // 1) Get Cognito JWT
-    const token = req.cookies.get('gensen_session')?.value;
-    if (!token) return NextResponse.json({ html: null }, { status: 401 });
+    // 1) Get Cognito sub
+    const sub = getSub(req);
+    if (!sub) return NextResponse.json({ html: null }, { status: 401 });
 
-  const payload = await verifyIdToken(token);
-const rawEmail = String(payload.email || "");
-const email = rawEmail.trim().toLowerCase().replace(/\s+/g, "");
+    // 2) Load PROFILE from Dynamo
+    const profile = await dynamo.send(
+      new GetItemCommand({
+        TableName: TABLE,
+        Key: {
+          ClientID: { S: `sub#${sub}` },
+          SortKey: { S: "PROFILE" },
+        },
+      })
+    );
 
-if (!email) return NextResponse.json({ html: null }, { status: 400 });
+    if (!profile.Item) {
+      return NextResponse.json({ html: null });
+    }
 
+    // 3) Extract Opportunity.S3Key
+    const opportunity = profile.Item.Opportunity?.M;
+    const s3Key = opportunity?.S3Key?.S;
 
-    // 2) Query Airtable by CleanEmail
-    const url = `https://api.airtable.com/v0/${process.env.AIRTABLE_BASE_ID}/Responses?filterByFormula={CleanEmail}="${email}"`;
+    if (!s3Key) {
+      return NextResponse.json({ html: null });
+    }
 
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${process.env.AIRTABLE_TOKEN}` },
-      cache: 'no-store',
-    });
-
-    const data = await res.json();
-    const record = data.records?.[0];
-    if (!record) return NextResponse.json({ html: null });
-
-    // 3) Correct Airtable field: S3 Key Opportunity
-    const s3Key = record.fields['S3 Key Opportunity'];
-    if (!s3Key) return NextResponse.json({ html: null });
-
+    // 4) Fetch HTML from S3
     const s3Object = await s3.send(
       new GetObjectCommand({
         Bucket: BUCKET,
@@ -57,15 +77,17 @@ if (!email) return NextResponse.json({ html: null }, { status: 400 });
     );
 
     const body = s3Object.Body;
-    if (!body) return NextResponse.json({ html: null }, { status: 500 });
+    if (!body)
+      return NextResponse.json({ html: null }, { status: 500 });
 
-    const rawHtml = await streamToString(body as AsyncIterable<Uint8Array>);
+    const rawHtml = await streamToString(
+      body as AsyncIterable<Uint8Array>
+    );
     const cleanedHtml = cleanMojibake(rawHtml);
 
     return NextResponse.json({ html: cleanedHtml });
-
   } catch (err) {
-    console.error("opportunity-report error:", err);
+    console.error("opportunity-report Dynamo error:", err);
     return NextResponse.json({ html: null }, { status: 500 });
   }
 }
