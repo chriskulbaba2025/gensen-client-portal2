@@ -183,7 +183,7 @@ export default function HubSpokeChart({
                           border: "1px solid #dbeafe",
                           transition: "all 0.25s ease",
                         }}
-                        onClick={() => router.push(`/hub/${hubNumber}`)}
+                        onClick={() => router.push(`/dashboard/hub/${hubNumber}`)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = color;
                           e.currentTarget.style.color = "#ffffff";
