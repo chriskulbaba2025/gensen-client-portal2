@@ -1,5 +1,5 @@
 import SpokeClient from "./SpokeClient";
 
 export default function HubPage({ params }: { params: { hub: string } }) {
-  return <SpokeClient hubParam={params.hub} />;
+  return <SpokeClient hubId={params.hub} />;
 }
