@@ -22,7 +22,6 @@ interface SpokeRecord {
   spokeNumber: number;
   whyItMatters: string;
 
-  // Added for accuracy
   searchIntent?: string;
   SearchIntent?: string;
 }
@@ -82,7 +81,8 @@ export default function SpokeDetailPage({
   // ========================================================
   useEffect(() => {
     async function load() {
-      if (!spokeId || !spokeId.includes("-")) {
+      // Correct: Accept Dynamo SortKey, not "1-1"
+      if (!spokeId || !spokeId.startsWith("HUB#")) {
         setError("Invalid spokeId format");
         setLoadingRecord(false);
         return;
@@ -122,13 +122,15 @@ export default function SpokeDetailPage({
     async function getBrief() {
       setLoadingBrief(true);
 
-      // ---------------------------------------------
-      // 1. CHECK CACHE FIRST (Dynamo)
-      // ---------------------------------------------
       const r = record as SpokeRecord;
-      const hubStr = String(r.hubNumber).padStart(2, "0");
+
+      // Correct padding rules — Hub must be 3 digits
+      const hubStr = String(r.hubNumber).padStart(3, "0");  // FIXED
       const spokeStr = String(r.spokeNumber).padStart(3, "0");
 
+      //
+      // 1. CHECK CACHE (Dynamo)
+      //
       try {
         const cachedRes = await fetch(
           `/api/get-spoke-brief?hub=${hubStr}&spoke=${spokeStr}`,
@@ -138,20 +140,17 @@ export default function SpokeDetailPage({
         const cachedJson = await cachedRes.json();
 
         if (cachedJson.brief) {
-          // Found cached brief → skip n8n
           setBrief(cachedJson.brief);
           setLoadingBrief(false);
           return;
         }
       } catch {
-        // If cache check fails, continue to n8n
+        // Cache might fail; continue
       }
 
-      // ---------------------------------------------
-      // 2. NO CACHE → continue to n8n
-      // ---------------------------------------------
-
-      // Start countdown
+      //
+      // 2. NO CACHE → N8N GENERATION
+      //
       setCountdown(30);
       const countdownInterval = setInterval(() => {
         setCountdown((c) => {
@@ -164,7 +163,6 @@ export default function SpokeDetailPage({
       }, 1000);
 
       try {
-        // CORRECT searchIntent via fallback chain
         const finalSearchIntent =
           r.SearchIntent ?? r.searchIntent ?? r.intent ?? "";
 
@@ -202,11 +200,15 @@ export default function SpokeDetailPage({
 
         setBrief(briefData);
 
-        // Save to Dynamo (non-blocking)
+        // Save in Dynamo
         fetch("/api/store-spoke-brief", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ brief: briefData }),
+          body: JSON.stringify({
+            hub: hubStr,
+            spoke: spokeStr,
+            brief: briefData,
+          }),
         }).catch(() => {});
       } catch {
         setError("Failed to generate Executive Brief");
@@ -228,7 +230,7 @@ export default function SpokeDetailPage({
 
   //
   // ========================================================
-  // LOADING BRIEF VIEW
+  // WAITING FOR BRIEF
   // ========================================================
   if (loadingBrief || (!brief && countdown > 0)) {
     return (
@@ -260,26 +262,20 @@ export default function SpokeDetailPage({
 
   return (
     <div className="max-w-[900px] mx-auto py-[32px] space-y-[32px]">
-      {/* TITLE */}
       <h1 className="text-[30px] font-bold text-[#10284a]">{r.title}</h1>
 
-      {/* DESCRIPTION */}
       {r.description && (
         <p className="text-[16px] leading-[1.55] text-[#4b5563]">
           {r.description}
         </p>
       )}
 
-      {/* METRICS */}
       <Metrics record={r} />
 
-      {/* WHY IT MATTERS */}
       {r.whyItMatters && <Card title="Why It Matters" text={r.whyItMatters} />}
 
-      {/* LOCAL ANGLE */}
       {r.localAngle && <Card title="Local Angle" text={r.localAngle} />}
 
-      {/* EXECUTIVE BRIEF */}
       {brief && <ExecBriefBlock brief={brief} />}
     </div>
   );
@@ -345,7 +341,6 @@ function ExecBriefBlock({ brief }: { brief: ExecBrief }) {
         text={brief.clientSummary.whatTheArticleCovers}
       />
 
-      {/* CTAs */}
       {brief.recommendedCTAs?.length > 0 && (
         <details className="border border-[#d1d5db] rounded-[8px]">
           <summary className="cursor-pointer px-4 py-2 bg-[#f9fafb] text-[16px] font-medium">
@@ -359,9 +354,8 @@ function ExecBriefBlock({ brief }: { brief: ExecBrief }) {
         </details>
       )}
 
-      {/* NEXT STEPS */}
       {brief.clientSummary.nextSteps?.length > 0 && (
-        <div>
+        <>
           <h3 className="text-[17px] font-semibold text-[#111827] mb-[6px]">
             Next Steps
           </h3>
@@ -370,7 +364,7 @@ function ExecBriefBlock({ brief }: { brief: ExecBrief }) {
               <li key={i}>{s}</li>
             ))}
           </ul>
-        </div>
+        </>
       )}
     </div>
   );
