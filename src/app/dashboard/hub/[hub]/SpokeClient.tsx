@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 interface SpokeRecord {
   id: string;
@@ -60,57 +60,68 @@ const STAGES: {
   },
 ];
 
-export default function SpokeClient({ hubId }: { hubId: string }) {
+export default function SpokeClient({ hubId }: { hubId?: string }) {
   const router = useRouter();
+  const pathname = usePathname();
+
   const [records, setRecords] = useState<SpokeRecord[] | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState(false);
 
-useEffect(() => {
-  console.log("[SpokeClient] hubId param:", hubId);
+  useEffect(() => {
+    // Fallback: if prop is undefined, derive hubId from URL
+    const fromUrl = pathname.split("/").filter(Boolean).pop() ?? "";
+    const effectiveHubId = hubId ?? fromUrl;
 
-  const hubNumber = Number(hubId);
-  console.log("[SpokeClient] hubNumber parsed:", hubNumber, "isNaN?", Number.isNaN(hubNumber));
+    console.log("[SpokeClient] hubId prop:", hubId, "fromUrl:", fromUrl, "effective:", effectiveHubId);
 
-  if (!hubNumber || Number.isNaN(hubNumber)) {
-    console.error("[SpokeClient] Invalid hubNumber, setting error");
-    setError(true);
-    return;
-  }
+    const hubNumber = Number(effectiveHubId);
+    console.log("[SpokeClient] hubNumber parsed:", hubNumber, "isNaN?", Number.isNaN(hubNumber));
 
-  console.log("[SpokeClient] Calling /api/get-spokes with:", { hubNumber });
-
-  fetch("/api/get-spokes", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ hubNumber }),
-  })
-    .then((res) => {
-      console.log("[SpokeClient] Response status:", res.status);
-      return res.json();
-    })
-    .then((data: SpokeRecord[] | { error: string }) => {
-      console.log("[SpokeClient] Response JSON:", data);
-
-      if (!Array.isArray(data)) {
-        console.error("[SpokeClient] Data is not an array, setting error");
-        setError(true);
-        return;
-      }
-
-      const total = data.length;
-      const published = data.filter((r) => r.status === "published").length;
-      const drafts = total - published;
-
-      setRecords(data);
-      setStats({ total, published, drafts });
-    })
-    .catch((err) => {
-      console.error("[SpokeClient] Fetch error:", err);
+    if (!hubNumber || Number.isNaN(hubNumber)) {
+      console.error("[SpokeClient] Invalid hubNumber, setting error");
       setError(true);
-    });
-}, [hubId]);
+      return;
+    }
 
+    fetch("/api/get-spokes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ hubNumber }),
+    })
+      .then((res) => {
+        console.log("[SpokeClient] Response status:", res.status);
+        return res.json();
+      })
+      .then((data: SpokeRecord[] | { error: string }) => {
+        console.log("[SpokeClient] Response JSON:", data);
+
+        if (!Array.isArray(data)) {
+          console.error("[SpokeClient] Data is not an array, setting error");
+          setError(true);
+          return;
+        }
+
+        const total = data.length;
+        const published = data.filter((r) => r.status === "published").length;
+        const drafts = total - published;
+
+        setRecords(data);
+        setStats({ total, published, drafts });
+      })
+      .catch((err) => {
+        console.error("[SpokeClient] Fetch error:", err);
+        setError(true);
+      });
+  }, [hubId, pathname]);
+
+  if (error) {
+    return (
+      <h1 className="text-xl font-bold text-red-600 text-center mt-[40px]">
+        Could not load spokes
+      </h1>
+    );
+  }
 
   if (!records || !stats) {
     return (
@@ -142,7 +153,7 @@ useEffect(() => {
           {STAGES.map((stage) => (
             <div
               key={stage.key}
-              className="flex-1 flex flex-col justify-between rounded-[12px] border border-[#e5e7eb] px-[14px] py-[10px] bg-white shadow-sm"
+              className="flex flex-col justify-between rounded-[12px] border border-[#e5e7eb] px-[14px] py-[10px] bg-white shadow-sm"
             >
               <div className="flex items-center justify-between mb-[6px]">
                 <div className="flex items-center gap-[8px]">
@@ -270,8 +281,10 @@ useEffect(() => {
                       record={record}
                       color={stage.color}
                       onClick={() =>
-  router.push(`/dashboard/spoke/${record.hubNumber}-${record.spokeNumber}`)
-}
+                        router.push(
+                          `/dashboard/spoke/${record.hubNumber}-${record.spokeNumber}`
+                        )
+                      }
                     />
                   ))}
                 </div>
