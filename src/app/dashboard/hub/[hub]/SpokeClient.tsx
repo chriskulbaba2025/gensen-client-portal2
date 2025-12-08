@@ -66,43 +66,51 @@ export default function SpokeClient({ hubId }: { hubId: string }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState(false);
 
-  useEffect(() => {
-    const hubNumber = Number(hubId);
+useEffect(() => {
+  console.log("[SpokeClient] hubId param:", hubId);
 
-    if (!hubNumber || Number.isNaN(hubNumber)) {
-      setError(true);
-      return;
-    }
+  const hubNumber = Number(hubId);
+  console.log("[SpokeClient] hubNumber parsed:", hubNumber, "isNaN?", Number.isNaN(hubNumber));
 
-    fetch("/api/get-spokes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ hubNumber }),
-    })
-      .then((res) => res.json())
-      .then((data: SpokeRecord[] | { error: string }) => {
-        if (!Array.isArray(data)) {
-          setError(true);
-          return;
-        }
-
-        const total = data.length;
-        const published = data.filter((r) => r.status === "published").length;
-        const drafts = total - published;
-
-        setRecords(data);
-        setStats({ total, published, drafts });
-      })
-      .catch(() => setError(true));
-  }, [hubId]);
-
-  if (error) {
-    return (
-      <h1 className="text-xl font-bold text-red-600 text-center mt-[40px]">
-        Could not load spokes
-      </h1>
-    );
+  if (!hubNumber || Number.isNaN(hubNumber)) {
+    console.error("[SpokeClient] Invalid hubNumber, setting error");
+    setError(true);
+    return;
   }
+
+  console.log("[SpokeClient] Calling /api/get-spokes with:", { hubNumber });
+
+  fetch("/api/get-spokes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hubNumber }),
+  })
+    .then((res) => {
+      console.log("[SpokeClient] Response status:", res.status);
+      return res.json();
+    })
+    .then((data: SpokeRecord[] | { error: string }) => {
+      console.log("[SpokeClient] Response JSON:", data);
+
+      if (!Array.isArray(data)) {
+        console.error("[SpokeClient] Data is not an array, setting error");
+        setError(true);
+        return;
+      }
+
+      const total = data.length;
+      const published = data.filter((r) => r.status === "published").length;
+      const drafts = total - published;
+
+      setRecords(data);
+      setStats({ total, published, drafts });
+    })
+    .catch((err) => {
+      console.error("[SpokeClient] Fetch error:", err);
+      setError(true);
+    });
+}, [hubId]);
+
 
   if (!records || !stats) {
     return (
