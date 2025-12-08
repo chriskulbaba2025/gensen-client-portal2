@@ -277,13 +277,14 @@ export default function SpokeClient({ hubId }: { hubId?: string }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-[10px] mt-[4px]">
                   {stageRecords.map((record) => (
                     <SpokeCard
-                      key={record.id}
-                      record={record}
-                      color={stage.color}
-                      onClick={() =>
-                        router.push(`/dashboard/spoke/${encodeURIComponent(record.id)}`)
-                      }
-                    />
+  key={record.id}
+  record={record}
+  color={stage.color}
+  onClick={() => {
+    const spokeId = record.id; // "HUB#1#SPOKE#003"
+    router.push(`/dashboard/spoke/${encodeURIComponent(spokeId)}`);
+  }}
+/>
                   ))}
                 </div>
               )}
