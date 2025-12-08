@@ -3,10 +3,6 @@
 
 import { useEffect, useState } from "react";
 
-//
-// ==========================================================
-// TYPES
-// ==========================================================
 interface SpokeRecord {
   id: string;
   title: string;
@@ -55,31 +51,22 @@ interface ExecBrief {
   };
 }
 
-//
-// ==========================================================
-// PAGE COMPONENT
-// ==========================================================
-export default function SpokeDetailPage({
-  params,
-}: {
-  params: { spokeId: string };
-}) {
+export default function SpokeDetailPage({ params }: { params: { spokeId: string } }) {
   const [record, setRecord] = useState<SpokeRecord | null>(null);
   const [brief, setBrief] = useState<ExecBrief | null>(null);
-
   const [error, setError] = useState<string | null>(null);
 
   const [loadingRecord, setLoadingRecord] = useState(true);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
-  // ★ FIX: decode incoming param BEFORE validation
+  // ★ Decode FIRST
   const spokeId = decodeURIComponent(params.spokeId);
 
-  //
-  // ========================================================
-  // LOAD SPOKE
-  // ========================================================
+  // ★ Log the actual runtime value (no explanations, just data)
+  console.log("spokeId >>>", spokeId);
+  console.log("startsWith HUB# >>>", spokeId.startsWith("HUB#"));
+
   useEffect(() => {
     async function load() {
       if (!spokeId || !spokeId.startsWith("HUB#")) {
@@ -113,10 +100,6 @@ export default function SpokeDetailPage({
     load();
   }, [spokeId]);
 
-  //
-  // ========================================================
-  // EXECUTIVE BRIEF FETCH (CACHE → n8n)
-  // ========================================================
   useEffect(() => {
     if (!record) return;
 
@@ -124,11 +107,9 @@ export default function SpokeDetailPage({
       setLoadingBrief(true);
 
       const r = record as SpokeRecord;
-
       const hubStr = String(r.hubNumber).padStart(3, "0");
       const spokeStr = String(r.spokeNumber).padStart(3, "0");
 
-      // 1. Check cache
       try {
         const cachedRes = await fetch(
           `/api/get-spoke-brief?hub=${hubStr}&spoke=${spokeStr}`,
@@ -144,7 +125,6 @@ export default function SpokeDetailPage({
         }
       } catch {}
 
-      // 2. No cache → generate via n8n
       setCountdown(30);
       const countdownInterval = setInterval(() => {
         setCountdown((c) => {
@@ -187,14 +167,11 @@ export default function SpokeDetailPage({
           }
         );
 
-        if (!res.ok) throw new Error("Webhook returned error");
-
         const json = await res.json();
         const briefData = Array.isArray(json) ? json[0] : json;
 
         setBrief(briefData);
 
-        // Save in Dynamo
         fetch("/api/store-spoke-brief", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -214,18 +191,10 @@ export default function SpokeDetailPage({
     getBrief();
   }, [record]);
 
-  //
-  // ========================================================
-  // GLOBAL LOADING / ERROR
-  // ========================================================
   if (loadingRecord) return <PageMessage text="Loading spoke…" />;
   if (error) return <PageError text={error} />;
   if (!record) return <PageError text="No spoke found." />;
 
-  //
-  // ========================================================
-  // WAITING FOR BRIEF
-  // ========================================================
   if (loadingBrief || (!brief && countdown > 0)) {
     return (
       <div className="max-w-[900px] mx-auto py-[60px] text-center space-y-[24px]">
@@ -234,23 +203,14 @@ export default function SpokeDetailPage({
         </h2>
 
         <p className="text-[16px] text-gray-600">
-          We’re running your strategic analysis. This usually takes 20–30
-          seconds.
+          We’re running your strategic analysis.
         </p>
 
         <div className="text-[48px] font-bold text-[#076aff]">{countdown}s</div>
-
-        <p className="text-[14px] text-gray-500">
-          Reviewing search intent • Evaluating fit • Building executive summary
-        </p>
       </div>
     );
   }
 
-  //
-  // ========================================================
-  // FINAL RENDER
-  // ========================================================
   if (!record) return null;
   const r = record as SpokeRecord;
 
@@ -267,7 +227,6 @@ export default function SpokeDetailPage({
       <Metrics record={r} />
 
       {r.whyItMatters && <Card title="Why It Matters" text={r.whyItMatters} />}
-
       {r.localAngle && <Card title="Local Angle" text={r.localAngle} />}
 
       {brief && <ExecBriefBlock brief={brief} />}
@@ -275,10 +234,6 @@ export default function SpokeDetailPage({
   );
 }
 
-//
-// ==========================================================
-// REUSABLE COMPONENTS
-// ==========================================================
 function PageMessage({ text }: { text: string }) {
   return <div className="p-8 text-center text-gray-500">{text}</div>;
 }
