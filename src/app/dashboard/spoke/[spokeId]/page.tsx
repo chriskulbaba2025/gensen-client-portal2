@@ -52,6 +52,14 @@ interface ExecBrief {
 }
 
 export default function SpokeDetailPage({ params }: { params: { spokeId: string } }) {
+
+  // ★ Decode FIRST — now placed at the very top
+  const spokeId = decodeURIComponent(params.spokeId);
+
+  // ★ Logs — MUST run before anything else
+  console.log("spokeId >>>", spokeId);
+  console.log("startsWith HUB# >>>", spokeId.startsWith("HUB#"));
+
   const [record, setRecord] = useState<SpokeRecord | null>(null);
   const [brief, setBrief] = useState<ExecBrief | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,13 +67,6 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
   const [loadingRecord, setLoadingRecord] = useState(true);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [countdown, setCountdown] = useState(30);
-
-  // ★ Decode FIRST
-  const spokeId = decodeURIComponent(params.spokeId);
-
-  // ★ Log the actual runtime value (no explanations, just data)
-  console.log("spokeId >>>", spokeId);
-  console.log("startsWith HUB# >>>", spokeId.startsWith("HUB#"));
 
   useEffect(() => {
     async function load() {
