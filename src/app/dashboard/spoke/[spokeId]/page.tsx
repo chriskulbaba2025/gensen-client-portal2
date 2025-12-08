@@ -17,7 +17,6 @@ interface SpokeRecord {
   hubNumber: number;
   spokeNumber: number;
   whyItMatters: string;
-
   searchIntent?: string;
   SearchIntent?: string;
 }
@@ -51,12 +50,15 @@ interface ExecBrief {
   };
 }
 
-export default function SpokeDetailPage({ params }: { params: { spokeId: string } }) {
-
-  // ★ Decode FIRST — now placed at the very top
+export default function SpokeDetailPage({
+  params,
+}: {
+  params: { spokeId: string };
+}) {
+  // Decode FIRST
   const spokeId = decodeURIComponent(params.spokeId);
 
-  // ★ Logs — MUST run before anything else
+  // Logs
   console.log("spokeId >>>", spokeId);
   console.log("startsWith HUB# >>>", spokeId.startsWith("HUB#"));
 
@@ -90,7 +92,7 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
           return;
         }
 
-        setRecord(data);
+        setRecord(data as SpokeRecord);
         setLoadingRecord(false);
       } catch {
         setError("Network error loading spoke");
@@ -141,7 +143,7 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
         const finalSearchIntent =
           r.SearchIntent ?? r.searchIntent ?? r.intent ?? "";
 
-        const payload = [
+        const payload: ExecBrief[] = [
           {
             title: r.title,
             description: r.description,
@@ -156,6 +158,18 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
             spokeNumber: r.spokeNumber,
             brandVoice:
               "GENSEN voice: confident, grounded, precise, human, editorial, no hype, no fluff.",
+            audienceIntent: "",
+            whyThisMatters: "",
+            howToUseThisContent: "",
+            contentSummary: "",
+            recommendedCTAs: [],
+            clientSummary: {
+              audience: "",
+              value: "",
+              howToUseIt: "",
+              whatTheArticleCovers: "",
+              nextSteps: [],
+            },
           },
         ];
 
@@ -227,7 +241,9 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
 
       <Metrics record={r} />
 
-      {r.whyItMatters && <Card title="Why It Matters" text={r.whyItMatters} />}
+      {r.whyItMatters && (
+        <Card title="Why It Matters" text={r.whyItMatters} />
+      )}
       {r.localAngle && <Card title="Local Angle" text={r.localAngle} />}
 
       {brief && <ExecBriefBlock brief={brief} />}

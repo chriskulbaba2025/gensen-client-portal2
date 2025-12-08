@@ -23,7 +23,7 @@ function getSubFromCookie(req: Request): string | null {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey
+  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey, e.g. HUB#001#SPOKE#001
 
   if (!spokeId || !spokeId.startsWith("HUB#")) {
     return NextResponse.json(
@@ -41,6 +41,7 @@ export async function GET(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
+  // Query for this exact spoke
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE_NAME,
     KeyConditionExpression: "ClientID = :c AND SortKey = :sk",
@@ -58,14 +59,18 @@ export async function GET(req: Request) {
 
   const item: any = result.Items[0];
 
+  // FULLY ALIGNED WITH FRONTEND INTERFACE + MAPPING TABLE
   const record = {
     id: item.SortKey?.S ?? "",
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
-    description: item.WhyItMatters?.S ?? "",
+    description: item.Description?.S ?? "",
+    whyItMatters: item.WhyItMatters?.S ?? "",
     keywords: item.SearchIntent?.S ?? "",
+    searchIntent: item.SearchIntent?.S ?? "",
     intent: item.Category?.S ?? "informational",
-    hubNumber: Number(item.HubNumber?.N),
-    spokeNumber: Number(item.SpokeNumber?.N),
+    status: item.Status?.S ?? "",
+    hubNumber: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
+    spokeNumber: item.SpokeNumber?.N ? Number(item.SpokeNumber.N) : 0,
     localAngle: item.LocalAngle?.S ?? "",
     bos: item.BOS?.N ? Number(item.BOS.N) : null,
     kd: item.KD?.N ? Number(item.KD.N) : null,
