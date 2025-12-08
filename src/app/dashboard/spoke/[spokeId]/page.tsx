@@ -73,7 +73,8 @@ export default function SpokeDetailPage({
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
-  const spokeId = params.spokeId;
+  // ★ FIX: decode incoming param BEFORE validation
+  const spokeId = decodeURIComponent(params.spokeId);
 
   //
   // ========================================================
@@ -81,7 +82,6 @@ export default function SpokeDetailPage({
   // ========================================================
   useEffect(() => {
     async function load() {
-      // Correct: Accept Dynamo SortKey, not "1-1"
       if (!spokeId || !spokeId.startsWith("HUB#")) {
         setError("Invalid spokeId format");
         setLoadingRecord(false);
@@ -89,9 +89,10 @@ export default function SpokeDetailPage({
       }
 
       try {
-        const res = await fetch(`/api/get-single-spoke?spokeId=${spokeId}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/get-single-spoke?spokeId=${encodeURIComponent(spokeId)}`,
+          { cache: "no-store" }
+        );
 
         const data = await res.json();
 
@@ -124,13 +125,10 @@ export default function SpokeDetailPage({
 
       const r = record as SpokeRecord;
 
-      // Correct padding rules — Hub must be 3 digits
-      const hubStr = String(r.hubNumber).padStart(3, "0");  // FIXED
+      const hubStr = String(r.hubNumber).padStart(3, "0");
       const spokeStr = String(r.spokeNumber).padStart(3, "0");
 
-      //
-      // 1. CHECK CACHE (Dynamo)
-      //
+      // 1. Check cache
       try {
         const cachedRes = await fetch(
           `/api/get-spoke-brief?hub=${hubStr}&spoke=${spokeStr}`,
@@ -144,13 +142,9 @@ export default function SpokeDetailPage({
           setLoadingBrief(false);
           return;
         }
-      } catch {
-        // Cache might fail; continue
-      }
+      } catch {}
 
-      //
-      // 2. NO CACHE → N8N GENERATION
-      //
+      // 2. No cache → generate via n8n
       setCountdown(30);
       const countdownInterval = setInterval(() => {
         setCountdown((c) => {
