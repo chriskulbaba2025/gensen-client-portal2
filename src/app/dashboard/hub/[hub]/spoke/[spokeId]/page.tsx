@@ -50,11 +50,8 @@ interface ExecBrief {
   };
 }
 
-export default function SpokeDetailPage({
-  params,
-}: {
-  params: { spokeId: string };
-}) {
+export default function SpokeDetailPage({ params }: { params: { spokeId: string } }) {
+
   // Decode FIRST
   const spokeId = decodeURIComponent(params.spokeId);
 
@@ -143,7 +140,7 @@ export default function SpokeDetailPage({
         const finalSearchIntent =
           r.SearchIntent ?? r.searchIntent ?? r.intent ?? "";
 
-        const payload: ExecBrief[] = [
+        const payload = [
           {
             title: r.title,
             description: r.description,
@@ -158,18 +155,6 @@ export default function SpokeDetailPage({
             spokeNumber: r.spokeNumber,
             brandVoice:
               "GENSEN voice: confident, grounded, precise, human, editorial, no hype, no fluff.",
-            audienceIntent: "",
-            whyThisMatters: "",
-            howToUseThisContent: "",
-            contentSummary: "",
-            recommendedCTAs: [],
-            clientSummary: {
-              audience: "",
-              value: "",
-              howToUseIt: "",
-              whatTheArticleCovers: "",
-              nextSteps: [],
-            },
           },
         ];
 
@@ -241,9 +226,7 @@ export default function SpokeDetailPage({
 
       <Metrics record={r} />
 
-      {r.whyItMatters && (
-        <Card title="Why It Matters" text={r.whyItMatters} />
-      )}
+      {r.whyItMatters && <Card title="Why It Matters" text={r.whyItMatters} />}
       {r.localAngle && <Card title="Local Angle" text={r.localAngle} />}
 
       {brief && <ExecBriefBlock brief={brief} />}

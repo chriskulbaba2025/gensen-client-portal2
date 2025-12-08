@@ -283,10 +283,10 @@ export default function SpokeClient({ hubId }: { hubId?: string }) {
       key={record.id}
       record={record}
       color={stage.color}
-      onClick={() => {
-        const spokeId = record.id;
-        router.push(`/dashboard/spoke/${encodeURIComponent(spokeId)}`);
-      }}
+     onClick={() => {
+  const spokeId = record.id;
+  router.push(`/dashboard/hub/${record.hubNumber}/spoke/${encodeURIComponent(spokeId)}`);
+}}
     />
   );
 })}
