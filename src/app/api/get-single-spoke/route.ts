@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-
 import { NextResponse } from "next/server";
 import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
@@ -24,22 +23,11 @@ function getSubFromCookie(req: Request): string | null {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const spokeId = searchParams.get("spokeId");
+  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey
 
-  if (!spokeId || !spokeId.includes("-")) {
+  if (!spokeId || !spokeId.startsWith("HUB#")) {
     return NextResponse.json(
-      { error: "Invalid spokeId format. Expected 'hub-spoke'." },
-      { status: 400 }
-    );
-  }
-
-  const [rawHub, rawSpoke] = spokeId.split("-");
-  const hubNumber = Number(rawHub);
-  const spokeNumber = Number(rawSpoke);
-
-  if (!hubNumber || !spokeNumber) {
-    return NextResponse.json(
-      { error: "Invalid numeric values in spokeId" },
+      { error: "Invalid spokeId. Expected full SortKey." },
       { status: 400 }
     );
   }
@@ -54,52 +42,34 @@ export async function GET(req: Request) {
   });
 
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE_NAME,          // FIXED
-    KeyConditionExpression: "ClientID = :c",
-    FilterExpression: "HubNumber = :hub AND SpokeNumber = :spoke",
+    TableName: process.env.DYNAMO_TABLE_NAME,
+    KeyConditionExpression: "ClientID = :c AND SortKey = :sk",
     ExpressionAttributeValues: {
-      ":c": { S: `sub#${sub}` },                       // FIXED PK FORMAT
-      ":hub": { N: String(hubNumber) },
-      ":spoke": { N: String(spokeNumber) },
+      ":c": { S: `sub#${sub}` },
+      ":sk": { S: spokeId },
     },
   });
 
   const result = await client.send(cmd);
 
   if (!result.Items || result.Items.length === 0) {
-    return NextResponse.json(
-      { error: "Spoke not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Spoke not found" }, { status: 404 });
   }
 
   const item: any = result.Items[0];
-
-  const rawCategory =
-    item.Category?.S ??
-    item.category?.S ??
-    "informational";
-
-  const intent =
-    rawCategory.toLowerCase() === "informational"
-      ? "Informational"
-      : rawCategory.toLowerCase() === "transactional"
-      ? "Transactional"
-      : "Edge";
 
   const record = {
     id: item.SortKey?.S ?? "",
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
     description: item.WhyItMatters?.S ?? "",
     keywords: item.SearchIntent?.S ?? "",
-    intent,
-    status: item.Status?.S ?? "draft",
+    intent: item.Category?.S ?? "informational",
+    hubNumber: Number(item.HubNumber?.N),
+    spokeNumber: Number(item.SpokeNumber?.N),
+    localAngle: item.LocalAngle?.S ?? "",
     bos: item.BOS?.N ? Number(item.BOS.N) : null,
     kd: item.KD?.N ? Number(item.KD.N) : null,
     priority: item.Priority?.N ? Number(item.Priority.N) : null,
-    localAngle: item.LocalAngle?.S ?? "",
-    hubNumber,
-    spokeNumber,
   };
 
   return NextResponse.json(record);
