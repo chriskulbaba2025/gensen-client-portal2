@@ -3,6 +3,9 @@
 
 import { useEffect, useState } from "react";
 
+// -----------------------------------------------------
+// Types
+// -----------------------------------------------------
 interface SpokeRecord {
   id: string;
   title: string;
@@ -50,12 +53,17 @@ interface ExecBrief {
   };
 }
 
-export default function SpokeDetailPage({ params }: { params: { spokeId: string } }) {
-
-  // Decode FIRST
+// -----------------------------------------------------
+// Component
+// -----------------------------------------------------
+export default function SpokeDetailPage({
+  params,
+}: {
+  params: { spokeId: string };
+}) {
+  // Decode FIRST — this is the real value
   const spokeId = decodeURIComponent(params.spokeId);
 
-  // Logs
   console.log("spokeId >>>", spokeId);
   console.log("startsWith HUB# >>>", spokeId.startsWith("HUB#"));
 
@@ -67,6 +75,9 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
+  // -----------------------------------------------------
+  // Load the spoke metadata
+  // -----------------------------------------------------
   useEffect(() => {
     async function load() {
       if (!spokeId || !spokeId.startsWith("HUB#")) {
@@ -76,23 +87,24 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
       }
 
       try {
+        // Keep this aligned with your existing route implementation:
+        // GET /api/get-single-spoke?spokeId=...
         const res = await fetch(
           `/api/get-single-spoke?spokeId=${encodeURIComponent(spokeId)}`,
           { cache: "no-store" }
         );
 
-        const data = await res.json();
-
         if (!res.ok) {
-          setError(data.error || "Failed to load spoke");
+          setError("Failed to load spoke");
           setLoadingRecord(false);
           return;
         }
 
+        const data = await res.json();
         setRecord(data as SpokeRecord);
-        setLoadingRecord(false);
       } catch {
         setError("Network error loading spoke");
+      } finally {
         setLoadingRecord(false);
       }
     }
@@ -100,42 +112,51 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
     load();
   }, [spokeId]);
 
+  // -----------------------------------------------------
+  // Generate or load the Executive Brief
+  // -----------------------------------------------------
   useEffect(() => {
     if (!record) return;
 
     async function getBrief() {
       setLoadingBrief(true);
 
+      // Non-null assertion: at this point record is guaranteed non-null
       const r = record as SpokeRecord;
+
       const hubStr = String(r.hubNumber).padStart(3, "0");
       const spokeStr = String(r.spokeNumber).padStart(3, "0");
 
+      // Try loading cached brief from Dynamo
       try {
-        const cachedRes = await fetch(
+        const res = await fetch(
           `/api/get-spoke-brief?hub=${hubStr}&spoke=${spokeStr}`,
           { cache: "no-store" }
         );
+        const json = await res.json();
 
-        const cachedJson = await cachedRes.json();
-
-        if (cachedJson.brief) {
-          setBrief(cachedJson.brief);
+        if (json.brief) {
+          setBrief(json.brief);
           setLoadingBrief(false);
           return;
         }
-      } catch {}
+      } catch {
+        // ignore cache read failure and fall through to generation
+      }
 
+      // Start countdown
       setCountdown(30);
-      const countdownInterval = setInterval(() => {
+      const timer = setInterval(() => {
         setCountdown((c) => {
           if (c <= 1) {
-            clearInterval(countdownInterval);
+            clearInterval(timer);
             return 0;
           }
           return c - 1;
         });
       }, 1000);
 
+      // Generate a new brief via n8n webhook
       try {
         const finalSearchIntent =
           r.SearchIntent ?? r.searchIntent ?? r.intent ?? "";
@@ -172,6 +193,7 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
 
         setBrief(briefData);
 
+        // Store in Dynamo for future fast loads
         fetch("/api/store-spoke-brief", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -191,6 +213,9 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
     getBrief();
   }, [record]);
 
+  // -----------------------------------------------------
+  // Render States
+  // -----------------------------------------------------
   if (loadingRecord) return <PageMessage text="Loading spoke…" />;
   if (error) return <PageError text={error} />;
   if (!record) return <PageError text="No spoke found." />;
@@ -211,9 +236,12 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
     );
   }
 
-  if (!record) return null;
+  // At this point record is definitely non-null
   const r = record as SpokeRecord;
 
+  // -----------------------------------------------------
+  // Final render
+  // -----------------------------------------------------
   return (
     <div className="max-w-[900px] mx-auto py-[32px] space-y-[32px]">
       <h1 className="text-[30px] font-bold text-[#10284a]">{r.title}</h1>
@@ -234,6 +262,9 @@ export default function SpokeDetailPage({ params }: { params: { spokeId: string 
   );
 }
 
+// -----------------------------------------------------
+// UI helpers
+// -----------------------------------------------------
 function PageMessage({ text }: { text: string }) {
   return <div className="p-8 text-center text-gray-500">{text}</div>;
 }
