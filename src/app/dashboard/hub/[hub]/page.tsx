@@ -4,9 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function HubPage({ params }: { params: { hub: string } }) {
+  console.log("HUB PAGE PARAMS:", params);
+  console.log("HUB PAGE hubNumber:", Number(params.hub));
+
   const hubNumber = Number(params.hub);
   const [spokes, setSpokes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+;
 
   useEffect(() => {
     async function loadSpokes() {
