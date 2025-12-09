@@ -1,24 +1,19 @@
 import SpokeClient from "./SpokeClient";
 
-export default async function SpokePage({
+export default function SpokePage({
   params,
 }: {
   params: { hub: string; spokeId: string };
 }) {
-  const { hub, spokeId } = params;
+  const hubNum = Number(params.hub);
 
-  const hubNum = Number(hub);
-  const spokeNum = Number(spokeId);
-
-  const hubStr = hubNum.toString();                       // no padding
-  const spokeStr = spokeNum.toString().padStart(3, "0");  // padded
-
-  const sortKey = `HUB#${hubStr}#SPOKE#${spokeStr}`;
+  // spokeId is already the FULL SortKey, do NOT parse it
+  const sortKey = decodeURIComponent(params.spokeId);
 
   return (
     <SpokeClient
       hubNum={hubNum}
-      spokeNum={spokeNum}
+      spokeNum={0}              // not used anymore, can remove later
       sortKey={sortKey}
     />
   );
