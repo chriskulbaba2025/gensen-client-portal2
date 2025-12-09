@@ -100,9 +100,10 @@ export default function HubSpokeChart({
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() =>
-                    router.push(`/dashboard/hub/${hubNumber}`)
-                  }
+                  onClick={() => {
+  console.log("NAVIGATING TO HUB:", hubNumber);
+  router.push(`/dashboard/hub/${hubNumber}`);
+}}
                 />
               );
             })}
