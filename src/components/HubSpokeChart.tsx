@@ -45,9 +45,9 @@ export default function HubSpokeChart({
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
 
- const getHubNumber = (_item: any, index: number) => {
-  return index + 1;
-};
+  const getHubNumber = (_item: any, index: number) => {
+    return index + 1;
+  };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function HubSpokeChart({
           <rect width={width} height={height} fill="url(#bgGradient)" rx={24} />
 
           <g transform={`translate(${width / 2}, ${height / 2})`}>
-            {/* ARC CLICK FIX */}
+            {/* --- ARC CLICK --- */}
             {arcs.map((d: any, i: number) => {
               const color = colorDefault[i % colorDefault.length];
               const hubNumber = getHubNumber(normalized[i], i);
@@ -101,9 +101,9 @@ export default function HubSpokeChart({
                     e.currentTarget.style.filter = "none";
                   }}
                   onClick={() => {
-  console.log("NAVIGATING TO HUB:", hubNumber);
-  router.push(`/dashboard/hub/${hubNumber}`);
-}}
+                    console.log("ARC CLICK → hubNumber =", hubNumber);
+                    router.push(`/dashboard/hub/${hubNumber}`);
+                  }}
                 />
               );
             })}
@@ -179,17 +179,9 @@ export default function HubSpokeChart({
                           border: "1px solid #dbeafe",
                           transition: "all 0.25s ease",
                         }}
-                        onClick={() =>
-                          router.push(`/dashboard/hub/${hubNumber}`)
-                        }
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = color;
-                          e.currentTarget.style.color = "#ffffff";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background =
-                            "rgba(255,255,255,0.96)";
-                          e.currentTarget.style.color = "#0b1320";
+                        onClick={() => {
+                          console.log("LABEL CLICK → hubNumber =", hubNumber);
+                          router.push(`/dashboard/hub/${hubNumber}`);
                         }}
                       >
                         {sentenceCase(label)}

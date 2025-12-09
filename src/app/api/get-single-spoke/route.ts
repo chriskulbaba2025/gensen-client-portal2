@@ -23,10 +23,12 @@ function getSubFromCookie(req: Request): string | null {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey, e.g. HUB#1#SPOKE#001  (hub unpadded, spoke padded)
+  const spokeId = searchParams.get("spokeId");
 
+  console.log("API_GET_SINGLE_SPOKE_RECEIVED:", spokeId);
 
   if (!spokeId || !spokeId.startsWith("HUB#")) {
+    console.log("API_GET_SINGLE_SPOKE_INVALID:", spokeId);
     return NextResponse.json(
       { error: "Invalid spokeId. Expected full SortKey." },
       { status: 400 }
@@ -35,14 +37,19 @@ export async function GET(req: Request) {
 
   const sub = getSubFromCookie(req);
   if (!sub) {
+    console.log("API_GET_SINGLE_SPOKE_UNAUTHORIZED");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  console.log("API_GET_SINGLE_SPOKE_QUERY_KEYS:", {
+    ClientID: `sub#${sub}`,
+    SortKey: spokeId,
+  });
 
   const client = new DynamoDBClient({
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  // Query for this exact spoke
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE_NAME,
     KeyConditionExpression: "ClientID = :c AND SortKey = :sk",
@@ -54,13 +61,15 @@ export async function GET(req: Request) {
 
   const result = await client.send(cmd);
 
+  console.log("API_GET_SINGLE_SPOKE_DYNAMO_RESULT:", result.Items);
+
   if (!result.Items || result.Items.length === 0) {
+    console.log("API_GET_SINGLE_SPOKE_NOT_FOUND:", spokeId);
     return NextResponse.json({ error: "Spoke not found" }, { status: 404 });
   }
 
   const item: any = result.Items[0];
 
-  // FULLY ALIGNED WITH FRONTEND INTERFACE + MAPPING TABLE
   const record = {
     id: item.SortKey?.S ?? "",
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
@@ -77,6 +86,8 @@ export async function GET(req: Request) {
     kd: item.KD?.N ? Number(item.KD.N) : null,
     priority: item.Priority?.N ? Number(item.Priority.N) : null,
   };
+
+  console.log("API_GET_SINGLE_SPOKE_FINAL_RECORD:", record);
 
   return NextResponse.json(record);
 }

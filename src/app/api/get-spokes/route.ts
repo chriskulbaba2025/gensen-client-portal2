@@ -23,14 +23,30 @@ function getSubFromCookie(req: Request): string | null {
 }
 
 export async function POST(req: Request) {
-  const { hubNumber } = await req.json();
+
+  // 🔥 LOG 1 — Endpoint hit
+  console.log("API /get-spokes HIT");
+
+  const body = await req.json();
+
+  // 🔥 LOG 2 — Full body received
+  console.log("API /get-spokes received body:", body);
+
+  const { hubNumber } = body;
+
+  // 🔥 LOG 3 — Confirm hubNumber extracted
+  console.log("API /get-spokes extracted hubNumber:", hubNumber);
 
   if (!hubNumber) {
+    console.log("API /get-spokes ERROR: Missing hubNumber");
     return NextResponse.json({ error: "Missing hubNumber" }, { status: 400 });
   }
 
   const sub = getSubFromCookie(req);
+  console.log("API /get-spokes Cognito sub:", sub);
+
   if (!sub) {
+    console.log("API /get-spokes ERROR: Unauthorized");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -38,18 +54,26 @@ export async function POST(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  // CRITICAL FIX — Use begins_with on SortKey
+  const prefix = `HUB#${hubNumber}#SPOKE#`;
+  console.log("API /get-spokes Query prefix:", prefix);
+
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE_NAME,
     KeyConditionExpression:
       "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
       ":c": { S: `sub#${sub}` },
-      ":prefix": { S: `HUB#${hubNumber}#SPOKE#` },
+      ":prefix": { S: prefix },
     },
   });
 
   const result = await client.send(cmd);
+
+  // 🔥 LOG 4 — Raw Dynamo result
+  console.log("API /get-spokes Dynamo result:", result);
+
+  // 🔥 LOG 5 — Items found
+  console.log("API /get-spokes Dynamo Items:", result.Items);
 
   const records =
     result.Items?.map((item: any) => {
@@ -81,6 +105,9 @@ export async function POST(req: Request) {
         seoValue: item.SEOValue?.S ?? "",
       };
     }) ?? [];
+
+  // 🔥 LOG 6 — Sending back final records
+  console.log("API /get-spokes sending back:", records);
 
   return NextResponse.json(records);
 }

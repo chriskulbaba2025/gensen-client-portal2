@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 export default function HubClient({ hubNumber }: { hubNumber: number }) {
+  console.log("HubClient received hubNumber:", hubNumber);
+
   const [spokes, setSpokes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,20 +37,23 @@ export default function HubClient({ hubNumber }: { hubNumber: number }) {
       <h1 className="text-2xl font-bold">Hub {hubNumber}</h1>
 
       <div className="grid grid-cols-1 gap-4">
-        {spokes.map((spoke) => (
-          <Link
-            key={spoke.id}
-            href={`/dashboard/hub/${hubNumber}/spoke/${encodeURIComponent(
-              spoke.id
-            )}`}
-            className="p-4 border rounded hover:bg-gray-50"
-          >
-            <h2 className="font-semibold">{spoke.title}</h2>
-            <p className="text-sm text-gray-600">
-              {spoke.description?.slice(0, 120)}
-            </p>
-          </Link>
-        ))}
+        {spokes.map((spoke) => {
+  console.log("HUB_PAGE_SPOKE_RENDER:", spoke.id);
+
+  return (
+    <Link
+      key={spoke.id}
+      href={`/dashboard/hub/${hubNumber}/spoke/${encodeURIComponent(spoke.id)}`}
+      className="p-4 border rounded hover:bg-gray-50"
+    >
+      <h2 className="font-semibold">{spoke.title}</h2>
+      <p className="text-sm text-gray-600">
+        {spoke.description?.slice(0, 120)}
+      </p>
+    </Link>
+  );
+})}
+
       </div>
     </div>
   );
