@@ -108,7 +108,7 @@ export default function HubSpokeChart({
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() => router.push(`/dashboard/hub/${hubNumber}`)}
+                  onClick={() => router.push(`/dashboard/hub/${hubNumber}/spoke/1`)}
                 />
               );
             })}
@@ -183,7 +183,7 @@ export default function HubSpokeChart({
                           border: "1px solid #dbeafe",
                           transition: "all 0.25s ease",
                         }}
-                        onClick={() => router.push(`/dashboard/hub/${hubNumber}`)}
+                        onClick={() => router.push(`/dashboard/hub/${hubNumber}/spoke/1`)}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = color;
                           e.currentTarget.style.color = "#ffffff";
