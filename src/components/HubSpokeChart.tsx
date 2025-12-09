@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface HubSpokeItem {
   id: string;
-  title: string;          // <-- we REQUIRE lowercase title
+  title: string;
   hub?: number;
 }
 
@@ -21,12 +21,11 @@ export default function HubSpokeChart({
 }) {
   const router = useRouter();
 
-  // *** FIX: map Dynamo Title -> title ***
- const normalized = data.map((item) => ({
-  id: item.id,
-  title: item.title,   // API guarantees this
-  hub: item.hub ?? null,
-}));
+  const normalized = data.map((item) => ({
+    id: item.id,
+    title: item.title,
+    hub: item.hub ?? null,
+  }));
 
   const width = 850;
   const height = 850;
@@ -84,6 +83,7 @@ export default function HubSpokeChart({
           <rect width={width} height={height} fill="url(#bgGradient)" rx={24} />
 
           <g transform={`translate(${width / 2}, ${height / 2})`}>
+            {/* ARC CLICK FIX */}
             {arcs.map((d: any, i: number) => {
               const color = colorDefault[i % colorDefault.length];
               const hubNumber = getHubNumber(normalized[i], i);
@@ -108,7 +108,9 @@ export default function HubSpokeChart({
                     e.currentTarget.style.transform = "scale(1)";
                     e.currentTarget.style.filter = "none";
                   }}
-                  onClick={() => router.push(`/dashboard/hub/${hubNumber}/spoke/1`)}
+                  onClick={() =>
+                    router.push(`/dashboard/hub/${hubNumber}`)
+                  }
                 />
               );
             })}
@@ -119,7 +121,8 @@ export default function HubSpokeChart({
                 const angle = (d.startAngle + d.endAngle) / 2;
 
                 const outerLabelRadius = radius + 100;
-                const labelRadius = i % 2 === 0 ? outerLabelRadius : radius + 70;
+                const labelRadius =
+                  i % 2 === 0 ? outerLabelRadius : radius + 70;
                 const lineRadius = radius + 10;
 
                 const x = Math.cos(angle - Math.PI / 2) * labelRadius;
@@ -183,7 +186,9 @@ export default function HubSpokeChart({
                           border: "1px solid #dbeafe",
                           transition: "all 0.25s ease",
                         }}
-                        onClick={() => router.push(`/dashboard/hub/${hubNumber}/spoke/1`)}
+                        onClick={() =>
+                          router.push(`/dashboard/hub/${hubNumber}`)
+                        }
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = color;
                           e.currentTarget.style.color = "#ffffff";
@@ -215,12 +220,20 @@ export default function HubSpokeChart({
           </g>
         </svg>
 
-        {/* --- FIXED BLOCK WITH FULL SENTENCES RESTORED --- */}
         <div className="mt-[40px] bg-[#e9eef6] text-[#0b1320] rounded-lg p-8">
           <div className="text-[15px] leading-[24px] text-left max-w-[700px] mx-auto mb-6">
-            <p>Each hub is colour-coded by funnel stage so you can see how topics work together across your customer journey.</p>
-            <p>Blue builds awareness, green supports evaluation, and orange drives action.</p>
-            <p>This gives you a quick way to balance reach, education, and conversion instead of publishing at random.</p>
+            <p>
+              Each hub is colour-coded by funnel stage so you can see how topics
+              work together across your customer journey.
+            </p>
+            <p>
+              Blue builds awareness, green supports evaluation, and orange
+              drives action.
+            </p>
+            <p>
+              This gives you a quick way to balance reach, education, and
+              conversion instead of publishing at random.
+            </p>
           </div>
 
           <div className="text-[16px] leading-[26px] text-left max-w-[700px] mx-auto">

@@ -3,15 +3,15 @@ import SpokeClient from "./SpokeClient";
 export default async function SpokePage({
   params,
 }: {
-  params: Promise<{ hub: string; spokeId: string }>;
+  params: { hub: string; spokeId: string };
 }) {
-  const { hub, spokeId } = await params;
+  const { hub, spokeId } = params;
 
   const hubNum = Number(hub);
   const spokeNum = Number(spokeId);
 
-  const hubStr = hubNum.toString().padStart(3, "0");
-  const spokeStr = spokeNum.toString().padStart(3, "0");
+  const hubStr = hubNum.toString();                       // no padding
+  const spokeStr = spokeNum.toString().padStart(3, "0");  // padded
 
   const sortKey = `HUB#${hubStr}#SPOKE#${spokeStr}`;
 

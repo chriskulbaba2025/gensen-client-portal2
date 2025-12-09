@@ -7,7 +7,6 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
 /** Extract Cognito sub */
@@ -77,8 +76,7 @@ export async function POST(req: Request) {
   }
 
   //
-  // 3. Generate SortKey
-  // MUST be consistent with get-spoke-brief route
+  // 3. Generate SortKey (MATCHES get-spoke-brief)
   //
   const hubStr = String(brief.hubNumber).padStart(3, "0");
   const spokeStr = String(brief.spokeNumber).padStart(3, "0");

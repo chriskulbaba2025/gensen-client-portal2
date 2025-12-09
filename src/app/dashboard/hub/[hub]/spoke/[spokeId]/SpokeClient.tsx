@@ -72,8 +72,8 @@ export default function SpokeClient({
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [countdown, setCountdown] = useState(30);
 
-  const hubStr = hubNum.toString().padStart(3, "0");
-  const spokeStr = spokeNum.toString().padStart(3, "0");
+  const hubStr = hubNum.toString();                        // unpadded
+  const spokeStr = spokeNum.toString().padStart(3, "0");   // padded
 
   console.log("CLIENT COMPONENT MOUNTED >>>");
   console.log("hubNum:", hubNum, "spokeNum:", spokeNum, "sortKey:", sortKey);
@@ -127,6 +127,7 @@ export default function SpokeClient({
           `/api/get-spoke-brief?hub=${hubStr}&spoke=${spokeStr}`,
           { cache: "no-store" }
         );
+
         const json = await res.json();
 
         if (json.brief) {
@@ -141,7 +142,9 @@ export default function SpokeClient({
         console.warn("Cache load error:", err);
       }
 
-      // Start countdown timer immediately (as required)
+      // -----------------------------------------------------
+      // RUN COUNTDOWN
+      // -----------------------------------------------------
       setCountdown(30);
       const timer = setInterval(() => {
         setCountdown((c) => {
@@ -153,8 +156,11 @@ export default function SpokeClient({
         });
       }, 1000);
 
-      // Build payload for webhook
+      // -----------------------------------------------------
+      // BUILD WEBHOOK PAYLOAD
+      // -----------------------------------------------------
       const r = record as SpokeRecord;
+
       const finalSearchIntent =
         r.SearchIntent ?? r.searchIntent ?? r.intent ?? "";
 
@@ -171,12 +177,13 @@ export default function SpokeClient({
           localAngle: r.localAngle,
           hubNumber: r.hubNumber,
           spokeNumber: r.spokeNumber,
-          brandVoice:
-            "GENSEN voice: confident, grounded, precise, human.",
+          brandVoice: "GENSEN voice: confident, grounded, precise, human.",
         },
       ];
 
-      // Send webhook request
+      // -----------------------------------------------------
+      // SEND N8N WEBHOOK
+      // -----------------------------------------------------
       try {
         console.log("Sending webhook to N8N:", payload);
 
@@ -195,16 +202,18 @@ export default function SpokeClient({
         console.log("Received Executive Brief:", briefData);
         setBrief(briefData);
 
-        // Save the brief to Dynamo
-        fetch("/api/store-spoke-brief", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            hub: hubStr,
-            spoke: spokeStr,
-            brief: briefData,
-          }),
-        }).catch(() => {});
+        // -----------------------------------------------------
+        // SAVE BRIEF TO DYNAMO
+        // -----------------------------------------------------
+        try {
+          await fetch("/api/store-spoke-brief", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ brief: briefData }),
+          });
+        } catch {
+          console.warn("Failed to store brief in Dynamo (ignored)");
+        }
       } catch (err) {
         console.error("Webhook error:", err);
         setError("Failed to generate Executive Brief");

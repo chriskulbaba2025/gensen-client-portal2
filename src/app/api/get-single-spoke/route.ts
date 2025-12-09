@@ -23,7 +23,8 @@ function getSubFromCookie(req: Request): string | null {
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey, e.g. HUB#001#SPOKE#001
+  const spokeId = searchParams.get("spokeId"); // Expect FULL SortKey, e.g. HUB#1#SPOKE#001  (hub unpadded, spoke padded)
+
 
   if (!spokeId || !spokeId.startsWith("HUB#")) {
     return NextResponse.json(

@@ -8,7 +8,6 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 
-
 const REGION = process.env.AWS_REGION ?? "us-east-1";
 
 /** Extract Cognito sub from cookie */
@@ -66,19 +65,17 @@ export async function GET(req: Request) {
 
   //
   // 2. Parse query params
-  //
-  const { searchParams } = new URL(req.url);
-  const hub = searchParams.get("hub");   // must be padded: "001"
-  const spoke = searchParams.get("spoke"); // must be padded: "003"
+const { searchParams } = new URL(req.url);
 
-  if (!hub || !spoke) {
-    return NextResponse.json(
-      { error: "Missing hub or spoke" },
-      { status: 400 }
-    );
-  }
+const hub = searchParams.get("hub");     // unpadded
+const spoke = searchParams.get("spoke"); // padded "001"
 
-  const prefix = `BRIEF#${hub}#${spoke}`;
+if (!hub || !spoke) {
+  return NextResponse.json({ error: "Missing hub or spoke" }, { status: 400 });
+}
+
+const hubStr = hub.toString().padStart(3, "0");
+const prefix = `BRIEF#${hubStr}#${spoke}`;
 
   //
   // 3. Query Dynamo
