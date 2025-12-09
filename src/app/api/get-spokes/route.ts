@@ -38,14 +38,14 @@ export async function POST(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
+  // CRITICAL FIX — Use begins_with on SortKey
   const cmd = new QueryCommand({
-    TableName: process.env.DYNAMO_TABLE_NAME,   // FIXED
-    KeyConditionExpression: "ClientID = :c",
-    FilterExpression: "HubNumber = :hub AND SpokeNumber > :zero",
+    TableName: process.env.DYNAMO_TABLE_NAME,
+    KeyConditionExpression:
+      "ClientID = :c AND begins_with(SortKey, :prefix)",
     ExpressionAttributeValues: {
-      ":c": { S: `sub#${sub}` },                // FIXED PK FORMAT
-      ":hub": { N: `${hubNumber}` },
-      ":zero": { N: "0" },
+      ":c": { S: `sub#${sub}` },
+      ":prefix": { S: `HUB#${hubNumber}#SPOKE#` },
     },
   });
 
