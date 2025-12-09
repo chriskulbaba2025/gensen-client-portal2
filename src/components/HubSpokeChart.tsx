@@ -45,17 +45,9 @@ export default function HubSpokeChart({
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
 
-  const getHubNumber = (item: any, index: number) => {
-    if (typeof item.hub === "number" && !Number.isNaN(item.hub)) {
-      return item.hub;
-    }
-    const match = item.id?.match(/HUB#0*([0-9]+)/i);
-    if (match && match[1]) {
-      const n = Number(match[1]);
-      if (!Number.isNaN(n)) return n;
-    }
-    return index + 1;
-  };
+ const getHubNumber = (_item: any, index: number) => {
+  return index + 1;
+};
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
