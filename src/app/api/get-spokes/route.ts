@@ -54,8 +54,8 @@ export async function POST(req: Request) {
     region: process.env.AWS_REGION ?? "us-east-1",
   });
 
-  const prefix = `HUB#${hubNumber}#SPOKE#`;
-  console.log("API /get-spokes Query prefix:", prefix);
+  const prefix = `HUB#${hubNumber.toString().padStart(3, "0")}#SPOKE#`;
+  console.log("API /get-spokes Query prefix (PADDED):", prefix);
 
   const cmd = new QueryCommand({
     TableName: process.env.DYNAMO_TABLE_NAME,
