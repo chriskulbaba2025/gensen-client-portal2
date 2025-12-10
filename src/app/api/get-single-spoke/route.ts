@@ -15,6 +15,10 @@ function getSubFromCookie(req: Request): string | null {
 
   try {
     const decoded: any = decodeJwt(token);
+
+    // ✅ Added for consistency across all routes
+    console.log("COGNITO SUB EXTRACTED:", decoded.sub);
+
     return decoded.sub || null;
   } catch {
     return null;
@@ -59,9 +63,23 @@ export async function GET(req: Request) {
     },
   });
 
-  const result = await client.send(cmd);
+  let result;
+  try {
+    result = await client.send(cmd);
 
-  console.log("API_GET_SINGLE_SPOKE_DYNAMO_RESULT:", result.Items);
+    // ✅ Added: formatted, readable Dynamo output
+    console.log(
+      "API_GET_SINGLE_SPOKE_DYNAMO_RESULT_FULL:",
+      JSON.stringify(result, null, 2)
+    );
+
+  } catch (err) {
+    console.error("API_GET_SINGLE_SPOKE_DYNAMO_ERROR:", err);
+    return NextResponse.json(
+      { error: "dynamo_failed", details: String(err) },
+      { status: 500 }
+    );
+  }
 
   if (!result.Items || result.Items.length === 0) {
     console.log("API_GET_SINGLE_SPOKE_NOT_FOUND:", spokeId);

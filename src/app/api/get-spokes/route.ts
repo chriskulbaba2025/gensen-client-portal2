@@ -16,6 +16,10 @@ function getSubFromCookie(req: Request): string | null {
 
   try {
     const decoded: any = decodeJwt(token);
+
+    // ✅ INSERTED: sub-logging (matches get-hubs)
+    console.log("COGNITO SUB EXTRACTED:", decoded.sub);
+
     return decoded.sub || null;
   } catch {
     return null;
@@ -67,12 +71,25 @@ export async function POST(req: Request) {
     },
   });
 
-  const result = await client.send(cmd);
+  let result;
+  try {
+    result = await client.send(cmd);
 
-  // 🔥 LOG 4 — Raw Dynamo result
-  console.log("API /get-spokes Dynamo result:", result);
+    // ✅ INSERTED: Pretty-print Dynamo JSON (same style as get-hubs)
+    console.log(
+      "API /get-spokes Dynamo RESULT (formatted):",
+      JSON.stringify(result, null, 2)
+    );
 
-  // 🔥 LOG 5 — Items found
+  } catch (err) {
+    console.error("Dynamo get-spokes error:", err);
+    return NextResponse.json(
+      { error: "dynamo_failed", details: String(err) },
+      { status: 500 }
+    );
+  }
+
+  // 🔥 LOG — Items array
   console.log("API /get-spokes Dynamo Items:", result.Items);
 
   const records =
@@ -106,7 +123,7 @@ export async function POST(req: Request) {
       };
     }) ?? [];
 
-  // 🔥 LOG 6 — Sending back final records
+  // 🔥 LOG 6 — Final response
   console.log("API /get-spokes sending back:", records);
 
   return NextResponse.json(records);

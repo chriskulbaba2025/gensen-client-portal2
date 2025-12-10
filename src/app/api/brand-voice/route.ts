@@ -9,7 +9,7 @@ const dynamo = new DynamoDBClient({ region: process.env.AWS_REGION });
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 
 const TABLE = process.env.DYNAMO_TABLE_NAME!;
-const BUCKET = "gensen-voice-reports";
+const BUCKET = "8144-6256-0475-omni-reports";
 
 // Proper UTF-8 decoding
 async function streamToString(stream: AsyncIterable<Uint8Array>): Promise<string> {

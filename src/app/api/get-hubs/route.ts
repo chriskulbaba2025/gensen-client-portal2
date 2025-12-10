@@ -15,6 +15,7 @@ function getSubFromCookie(req: Request): string | null {
 
   try {
     const decoded: any = decodeJwt(token);
+    console.log("COGNITO SUB EXTRACTED:", decoded.sub);
     return decoded.sub || null;
   } catch {
     return null;
@@ -42,16 +43,22 @@ export async function GET(req: Request) {
   });
 
   let result;
-try {
-  result = await client.send(cmd);
-} catch (err) {
-  console.error("Dynamo get-hubs error:", err);
-  return NextResponse.json(
-    { error: "dynamo_failed", details: String(err) },
-    { status: 500 }
-  );
-}
+  try {
+    result = await client.send(cmd);
 
+    // ✅ INSERTED LOG — THIS IS THE EXACT SPOT
+    console.log(
+      "DYNAMO QUERY RESULT (HUBS):",
+      JSON.stringify(result, null, 2)
+    );
+
+  } catch (err) {
+    console.error("Dynamo get-hubs error:", err);
+    return NextResponse.json(
+      { error: "dynamo_failed", details: String(err) },
+      { status: 500 }
+    );
+  }
 
   // Correct hub detection: HUB# + 3 digits ONLY
   const onlyHubs =
@@ -64,7 +71,7 @@ try {
     id: item.SortKey.S,
     title: item.Title?.S ?? item.ShortTitle?.S ?? "",
     hub: item.HubNumber?.N ? Number(item.HubNumber.N) : 0,
-    businessName: item.BusinessName?.S ?? "",  // FIXED attribute name
+    businessName: item.BusinessName?.S ?? "",
   }));
 
   return NextResponse.json(hubs);
