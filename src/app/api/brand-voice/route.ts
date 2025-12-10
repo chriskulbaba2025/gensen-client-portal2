@@ -58,12 +58,11 @@ export async function GET(req: NextRequest) {
     }
 
    // 3) Extract S3Key directly (flat)
-const s3Key = profile.Item.S3Key?.S;
+const s3Key = profile.Item.S3KeyVoice?.S;
 
 if (!s3Key) {
   return NextResponse.json({ html: null });
 }
-
 
     // 4) Fetch HTML file from S3
     const s3Object = await s3.send(
