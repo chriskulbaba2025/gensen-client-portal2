@@ -40,7 +40,8 @@ export async function GET(req: NextRequest) {
 
     // FINAL NEW CANONICAL S3 PATH
     const clientId = `sub#${sub}`;
-    const s3Key = `content/${clientId}/reports/opportunity/latest.html`;
+    const s3Key = `clients/caring-support/reports/opportunity/latest.html`;
+
 
     // Fetch from S3
     const obj = await s3.send(
