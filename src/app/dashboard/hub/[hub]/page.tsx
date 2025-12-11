@@ -1,30 +1,15 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-console.log("PAGE_DEBUG_VERSION_1000");
+console.log("PAGE_DEBUG_VERSION_2000 — FILE LOADED");
 
-export default function HubPage({ params }: { params: { hub: any } }) {
+export default function HubPage({ params }: { params: any }) {
   console.log("PAGE_DEBUG_PARAMS:", params);
-  console.log("PAGE_DEBUG_RAW:", params.hub);
-  console.log("PAGE_DEBUG_TYPE:", typeof params.hub);
-
-  let hubNumber;
-
-  try {
-    hubNumber = parseInt(
-      Array.isArray(params.hub) ? params.hub[0] : params.hub,
-      10
-    );
-  } catch (err) {
-    console.log("PAGE_DEBUG_PARSE_ERROR:", err);
-    hubNumber = NaN;
-  }
-
-  console.log("PAGE_DEBUG_PARSED:", hubNumber);
-
+  console.log("PAGE_DEBUG_HUB:", params?.hub);
+  
   return (
     <div style={{ padding: 40, fontSize: 24 }}>
-      PAGE DEBUG – hubNumber = {String(hubNumber)}
+      PAGE_DEBUG — hub param: {String(params?.hub)}
     </div>
   );
 }
