@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 import { decodeJwt } from "jose";
 import { cleanMojibake } from "@/lib/cleanMojibake";
 import { TextDecoder } from "util";
 
 const s3 = new S3Client({ region: "us-east-1" });
+const dynamo = new DynamoDBClient({
+  region: process.env.AWS_REGION ?? "us-east-1",
+});
 const BUCKET = "8144-6256-0475-omni-reports";
 
 // Convert S3 stream → UTF-8 string
-async function streamToString(stream: AsyncIterable<Uint8Array>): Promise<string> {
+async function streamToString(
+  stream: AsyncIterable<Uint8Array>
+): Promise<string> {
   const decoder = new TextDecoder("utf-8");
   let result = "";
 
@@ -38,12 +44,31 @@ export async function GET(req: NextRequest) {
     const sub = getSub(req);
     if (!sub) return NextResponse.json({ html: null }, { status: 401 });
 
-    // FINAL NEW CANONICAL S3 PATH
     const clientId = `sub#${sub}`;
-    const s3Key = `clients/caring-support/reports/opportunity/latest.html`;
 
+    // 1) Get PROFILE record for this client
+    const profile = await dynamo.send(
+      new GetItemCommand({
+        TableName: process.env.DYNAMO_TABLE_NAME,
+        Key: {
+          ClientID: { S: clientId },
+          SortKey: { S: "PROFILE" },
+        },
+      })
+    );
 
-    // Fetch from S3
+    if (!profile.Item) {
+      console.error("No PROFILE found for", clientId);
+      return NextResponse.json({ html: null }, { status: 500 });
+    }
+
+    const s3Key = profile.Item.S3KeyOpportunity?.S;
+    if (!s3Key) {
+      console.error("Missing S3KeyOpportunity for", clientId);
+      return NextResponse.json({ html: null }, { status: 500 });
+    }
+
+    // 2) Fetch from S3 using the per-client key
     const obj = await s3.send(
       new GetObjectCommand({
         Bucket: BUCKET,
