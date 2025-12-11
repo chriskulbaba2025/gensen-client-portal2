@@ -78,11 +78,11 @@ const tiles: Tile[] = [
     description: 'Ready-to-shoot scripts for YouTube, Reels, and TikTok.',
   },
   {
-    title: 'Social Insights',
-    imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/11/social-insights.png',
-    href: '/dashboard/opportunities',
-    description: 'Automate workflows with custom AI agents tuned to your process.',
-  },
+  title: 'Opportunity Map',
+  imageUrl: 'https://omnipressence.com/wp-content/uploads/2025/11/social-insights.png',
+  href: '/dashboard/opportunities',
+  description: 'Your monthly Opportunity Map report with strategic insights.',
+}
 ];
 
 export default function DashboardPage() {
