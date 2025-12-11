@@ -1,19 +1,30 @@
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-import HubClient from "@/app/dashboard/hub/[hub]/HubClient";
+console.log("PAGE_DEBUG_VERSION_1000");
 
-console.log("HUB_PAGE_VERSION_003");
+export default function HubPage({ params }: { params: { hub: any } }) {
+  console.log("PAGE_DEBUG_PARAMS:", params);
+  console.log("PAGE_DEBUG_RAW:", params.hub);
+  console.log("PAGE_DEBUG_TYPE:", typeof params.hub);
 
-export default function HubPage({ params }: { params: { hub: string } }) {
-  console.log("HUB_PAGE_PARAMS:", params);
-  console.log("HUB_PAGE_HUB_RAW:", params.hub);
+  let hubNumber;
 
-  const raw = params.hub;
+  try {
+    hubNumber = parseInt(
+      Array.isArray(params.hub) ? params.hub[0] : params.hub,
+      10
+    );
+  } catch (err) {
+    console.log("PAGE_DEBUG_PARSE_ERROR:", err);
+    hubNumber = NaN;
+  }
 
-  const hubNumber = parseInt(Array.isArray(raw) ? raw[0] : raw, 10);
+  console.log("PAGE_DEBUG_PARSED:", hubNumber);
 
-  console.log("HUB_PAGE_HUB_PARSED:", hubNumber);
-
-  return <HubClient hubNumber={hubNumber} />;
+  return (
+    <div style={{ padding: 40, fontSize: 24 }}>
+      PAGE DEBUG – hubNumber = {String(hubNumber)}
+    </div>
+  );
 }
